@@ -9,7 +9,7 @@
 [![Status: Beta](https://img.shields.io/badge/status-beta-orange.svg)](https://github.com/FZ2000/da-cli/releases)
 [![Dependencies: 0 runtime](https://img.shields.io/badge/runtime%20deps-0-success.svg)](pyproject.toml)
 
-A DeviantArt CLI for syncing watched-artist galleries to a local folder, plus search/browse helpers.
+Sync your DeviantArt gallery to a local folder from the command line — a backup of the art you watch, kept current. **Zero runtime dependencies**: the whole tool is the Python 3.10+ standard library. A local SQLite index means a re-run costs one API call when nothing new was posted, and `launchd` (macOS) or a systemd timer (Linux) keeps it running unattended. Plus search and browse helpers.
 
 > **New to da-cli?** Follow the **[Setup Guide](docs/getting-started.md)** — it walks you through everything from install to first sync in about 10 minutes, with screenshots.
 > **Status: Beta (v0.3.x)** — core sync + search flow is stable. macOS Keychain integration is production-ready; Linux Secret Service support is planned. See [CHANGELOG.md](CHANGELOG.md) for details.
@@ -144,10 +144,11 @@ repeat `da auth` if you revoke the app or the refresh token expires
 ## Scheduled sync
 
 ```bash
-./install_schedule.sh              # macOS: daily at 03:00
+./install_schedule.sh              # macOS: daily at 03:00 via launchd
 ```
 
-On Linux, use a systemd user timer or cron. Both are covered, with the
+On macOS this installs a `launchd` user agent; the script writes the plist
+and loads it. On Linux, use a systemd user timer or cron. Both are covered, with the
 Full Disk Access step macOS needs and the `enable-linger` step systemd
 needs, in [docs/guides/scheduling.md](docs/guides/scheduling.md).
 

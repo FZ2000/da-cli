@@ -1,12 +1,18 @@
 [project]
 name = "da-cli"
-description = "Back up and sync your DeviantArt gallery from the command line. Zero runtime dependencies, Python 3.10+."
+description = "Sync DeviantArt galleries to local folders — zero-dependency Python CLI with OAuth 2.1 PKCE, a SQLite index, and scheduled macOS syncs."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
 authors = [{ name = "FZ2000 and contributors" }]
-keywords = ["deviantart", "cli", "oauth", "sync", "gallery"]
+keywords = [
+    "deviantart", "deviantart-api", "deviantart-downloader",
+    "gallery-downloader", "art-downloader", "downloader",
+    "cli", "command-line-tool", "backup", "archive", "sync",
+    "oauth", "oauth2", "pkce", "sqlite", "macos", "launchd",
+    "keychain", "zero-dependencies", "stdlib",
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Console",
@@ -20,6 +26,11 @@ classifiers = [
     "Topic :: Internet",
     "Topic :: Multimedia :: Graphics",
     "Topic :: Utilities",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: System :: Archiving :: Backup",
+    "Typing :: Typed",
 ]
 dynamic = ["version"]
 # Runtime dependencies: NONE. The dacli package imports stdlib only. Dev tooling
@@ -306,6 +317,13 @@ exclude_also = [
 [tool.setuptools.packages.find]
 include = ["dacli*"]
 namespaces = false
+
+# PEP 561 marker. Without this in the wheel, a downstream project's mypy
+# ignores our annotations entirely and the `Typing :: Typed` classifier is
+# a claim we do not honour. The package is mypy --strict clean, so the
+# marker is accurate.
+[tool.setuptools.package-data]
+dacli = ["py.typed"]
 
 # Single source of truth for the version: __version__ in dacli/__init__.py.
 [tool.setuptools.dynamic]

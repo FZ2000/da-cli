@@ -535,3 +535,72 @@ jobs:
         # here only matters once secrets are actually configured.
         continue-on-error: true
         run: pytest -m integration_anonymous -v --no-cov
+
+  discoverability:
+    # Guards the metadata that makes the project findable at all. GitHub's
+    # default repo search matches only name, description and topics — not the
+    # README — so those fields are the entire discovery surface, and they rot
+    # silently: nothing else in CI notices a description that stopped being
+    # true or a `Typing :: Typed` classifier with no py.typed beside it.
+    #
+    # Offline mode only. The --github rules need a token and query live API
+    # metadata, which is not a property of the commit under test.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # No token in the environment: this job runs no privileged step and
+          # a checkout that leaves credentials behind is a needless one.
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Discoverability and metadata checks
+        run: python3 tools/check_discoverability.py
+
+  ci-gate:
+    # One check to require in branch protection, instead of fifteen.
+    #
+    # Two problems this solves. First, the `test` job is a matrix, so it
+    # reports as `test (3.10)` ... `test (3.14)`; requiring those by name
+    # means editing branch protection every time the matrix changes. Second,
+    # three jobs here are conditional (`pip-audit`, `link-check-external`,
+    # `network-anonymous`) and a required check that never reports blocks a
+    # PR from merging forever.
+    #
+    # `if: always()` so this runs even when a dependency failed — without it
+    # the gate would itself be skipped and report nothing, which is the
+    # failure mode it exists to prevent.
+    if: always()
+    needs:
+      - lint
+      - test
+      - integration
+      - smoke
+      - artifact
+      - secret-scan
+      - verified-secret-scan
+      - codespell
+      - pip-audit
+      - markdownlint
+      - link-check
+      - link-check-external
+      - cassette-replay
+      - network-anonymous
+      - discoverability
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fail if any job failed or was cancelled
+        # `skipped` is deliberately tolerated: the three conditional jobs
+        # above skip by design on a normal push. Treating skipped as failure
+        # would make every push red; treating cancelled as success would let
+        # a timed-out run merge.
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: |
+          echo "::error::One or more required jobs did not succeed."
+          echo '${{ toJSON(needs) }}'
+          exit 1
+      - name: All required jobs succeeded
+        run: echo "ok"

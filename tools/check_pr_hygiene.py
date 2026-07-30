@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Catch the two ways a pull request can silently fail to reach main.
 
-Both have happened in this repo:
+Both happened during this project's development on its previous forge:
 
 1. **Mis-stacked.** A PR opened with ``base`` set to another feature
    branch. If that branch merges first and is consumed, merging the
@@ -17,38 +17,48 @@ merging PR N. Neither needs write access.
     python3 tools/check_pr_hygiene.py --audit
     python3 tools/check_pr_hygiene.py --verify 26
 
-Credentials come from ``git credential fill`` for the API host, so
-there is nothing to configure and no token to store.
+The token comes from ``gh auth token``, so if you can run ``gh`` you can
+run this — nothing to configure and no token stored here. Falls back to
+``GITHUB_TOKEN`` for CI use. Neither path needs write access.
 """
 
 from __future__ import annotations
 
 import argparse
-import base64
 import json
+import os
 import subprocess
 import sys
 import urllib.error
 import urllib.request
 
-API = "http://localhost:3000/api/v1"
+API = "https://api.github.com"
 REPO = "FZ2000/da-cli"
 TRUNK = "main"
 
 
 def _auth_header() -> dict[str, str]:
-    host = API.split("//", 1)[1].split("/", 1)[0]
-    proto = API.split(":", 1)[0]
-    out = subprocess.run(
-        ["git", "credential", "fill"],
-        input=f"protocol={proto}\nhost={host}\n\n",
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout
-    creds = dict(line.split("=", 1) for line in out.splitlines() if "=" in line)
-    token = base64.b64encode(f"{creds['username']}:{creds['password']}".encode()).decode()
-    return {"Authorization": f"Basic {token}"}
+    """Bearer token from `gh`, or GITHUB_TOKEN when running in CI.
+
+    Not `git credential fill` as the Gitea version used: the credential
+    helper stores a token for github.com (git over HTTPS), not for
+    api.github.com, so it is the wrong lookup and would miss.
+    """
+    token = (
+        os.environ.get("GITHUB_TOKEN")
+        or subprocess.run(
+            ["gh", "auth", "token"], capture_output=True, text=True, check=False
+        ).stdout.strip()
+    )
+    if not token:
+        raise SystemExit("no token: run `gh auth login`, or set GITHUB_TOKEN")
+    return {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json",
+        # Pin the API version so a future default change cannot silently
+        # alter the response shape this script reads.
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
 
 
 def _get(path: str) -> object:
@@ -63,7 +73,7 @@ def _sh(*args: str) -> str:
 
 def audit() -> int:
     """Flag every open PR whose base is not the trunk."""
-    prs = _get(f"/repos/{REPO}/pulls?state=open&limit=50")
+    prs = _get(f"/repos/{REPO}/pulls?state=open&per_page=50")
     bad = [p for p in prs if p["base"]["ref"] != TRUNK]
     for p in prs:
         mark = "  " if p["base"]["ref"] == TRUNK else "!!"
@@ -73,8 +83,7 @@ def audit() -> int:
         print("branches merges first, merging the child strands its work.")
         print("Retarget while still open:")
         for p in bad:
-            url = f"{API}/repos/{REPO}/pulls/{p['number']}"
-            print(f"""  curl -X PATCH -d '{{"base":"{TRUNK}"}}' {url}""")
+            print(f"  gh pr edit {p['number']} --base {TRUNK}")
         print("\nAfter a PR is merged this is unrecoverable — the API refuses")
         print("to retarget a merged PR, and recovery means cherry-pick + new PR.")
         return 1

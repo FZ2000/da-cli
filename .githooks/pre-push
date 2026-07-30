@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Refuse a direct push to the default branch.
+#
+# WHY THIS EXISTS AS A HOOK
+#
+# The real mechanism is a server-side ruleset, and it is not available:
+# GitHub answers 403 "Upgrade to GitHub Pro or make this repository public"
+# to both the rulesets API and the older branch-protection API on a free
+# private repo. It becomes available (free) the moment the repo is public —
+# tools/apply_branch_protection.sh applies it in one command.
+#
+# Until then this hook is the only thing standing between a tired
+# `git push` and an unreviewed commit on main. Be clear about what it is:
+# client-side, per-clone, and trivially bypassed with --no-verify. It stops
+# accidents, not intent. It is not a security control.
+#
+# Enable (once per clone):
+#     git config core.hooksPath .githooks
+set -euo pipefail
+
+protected="main"
+remote_url="${2:-}"
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    # A deletion pushes the null SHA; let the server's own rules judge that.
+    [ "$local_sha" = "0000000000000000000000000000000000000000" ] && continue
+
+    if [ "$remote_ref" = "refs/heads/$protected" ]; then
+        cat >&2 <<MSG
+
+  Refusing to push directly to '$protected'.
+
+    remote: ${remote_url:-origin}
+    ref:    $remote_ref
+
+  Open a pull request instead:
+
+    git switch -c my-change
+    git push -u origin my-change
+    gh pr create
+
+  If you genuinely need to bypass this (repairing a broken main, say),
+  re-run with --no-verify and say why in the commit message.
+
+MSG
+        exit 1
+    fi
+done
+
+exit 0
