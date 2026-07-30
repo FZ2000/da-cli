@@ -1,0 +1,312 @@
+[project]
+name = "da-cli"
+description = "Back up and sync your DeviantArt gallery from the command line. Zero runtime dependencies, Python 3.10+."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+authors = [{ name = "FZ2000 and contributors" }]
+keywords = ["deviantart", "cli", "oauth", "sync", "gallery"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Internet",
+    "Topic :: Multimedia :: Graphics",
+    "Topic :: Utilities",
+]
+dynamic = ["version"]
+# Runtime dependencies: NONE. The dacli package imports stdlib only. Dev tooling
+# (ruff, mypy, pytest) is declared under [project.optional-dependencies].
+dependencies = []
+
+[project.optional-dependencies]
+# Full dev toolchain — what CI and `make dev-setup` install.
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.6",
+    "mypy>=1.10",
+]
+# Minimal subsets, for callers who don't need the full dev meta-package.
+test = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+]
+lint = [
+    "ruff>=0.6",
+    "mypy>=1.10",
+]
+# Network integration tests (Layer 3 cassettes). Adds VCR.py + pytest-vcr
+# for record/replay against real DA API responses.
+integration = [
+    "vcrpy>=4.4",
+    "pytest-vcr>=1.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/FZ2000/da-cli"
+Repository = "https://github.com/FZ2000/da-cli"
+Issues = "https://github.com/FZ2000/da-cli/issues"
+Changelog = "https://github.com/FZ2000/da-cli/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/FZ2000/da-cli#readme"
+
+# `pip install da-cli` exposes a `da` script on PATH. This is the
+# pip-installable counterpart of the `da` shim in the repo root; the
+# shim still exists for the git-clone-and-symlink install path
+# (see install.sh) used in the README.
+[project.scripts]
+da = "dacli:main"
+
+# ----------------------------------------------------------------------------
+# Build system (PEP 517) — required for reproducible `pip install`.
+# Without this table pip falls back to a legacy default that emits a
+# deprecation warning on pip 25+.
+# ----------------------------------------------------------------------------
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+# ----------------------------------------------------------------------------
+# ruff — strict lint + formatter. Replaces flake8/black/isort.
+# ----------------------------------------------------------------------------
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+extend-exclude = ["build", "dist", ".venv"]
+required-version = ">=0.6"
+
+[tool.ruff.lint]
+# Hard mode. Each rule family is documented at https://docs.astral.sh/ruff/rules
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort (import order)
+    "B",      # flake8-bugbear (likely-bug heuristics)
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade (modernise legacy syntax)
+    "SIM",    # flake8-simplify
+    "RUF",    # ruff-specific
+    "S",      # flake8-bandit (security)
+    "PL",     # pylint subset
+    "RET",    # flake8-return
+    "PTH",    # flake8-use-pathlib
+    "TRY",    # tryceratops (exception handling)
+    "ANN",    # flake8-annotations (require type annotations)
+    "D",      # pydocstyle (docstrings)
+    "N",      # pep8-naming (PEP 8 class/function/exception conventions)
+    "FURB",   # refurb (modernisation: hex/base64 helpers, bit_count, etc.)
+    "PERF",   # perflint (avoidable list-cast / loop-try patterns)
+    "PT",     # flake8-pytest-style (pytest idiom enforcement, tests-only)
+    "RSE",    # flake8-raise (raise Foo() not Foo(,))
+    "PGH",    # pygrep-hooks (noqa must specify code; no blanket type:ignore)
+    "FLY",    # flynt (f-string instead of .format()/%)
+    "ERA",    # eradicate (no commented-out code)
+    "FIX",    # flake8-fixme (no FIXME/XXX/HACK without an issue link)
+    "TD",     # flake8-todos (TODO format)
+    "SLF",    # flake8-self (private-member access outside owning class)
+]
+ignore = [
+    "ANN401",   # Allow `Any` in some intentional places (DA JSON is third-party-schema)
+    "D100",     # Missing module-level docstring (we have only one module)
+    "D103",     # Missing docstring in public function — argparse handlers are self-doc'd via `help=`
+    "D104",     # Missing __init__.py docstring
+    "D107",     # __init__ docstring — class docstring covers it
+    "D203",     # 1 blank line before class docstring (conflicts with D211)
+    "D212",     # Multi-line docstring summary should start at the first line (we use PEP 257 second-line style; D213 is the inverse)
+    "D213",     # Multi-line docstring summary should start at the second line (kept off in favour of explicit per-docstring style)
+    "D205",     # Blank line between summary and description — stylistic
+    "D400",     # First line ends with period — sometimes a colon is more apt
+    "D401",     # Imperative-mood summary — too pedantic
+    "D415",     # First line ends with punct — D400 covers this
+    "S101",     # `assert` — pytest uses these; production code does not (per-file-ignored in tests)
+    "S105",     # Hardcoded "password" detector trips on URLs containing /token, /secret, etc.
+    "S108",     # `/tmp` in tests (per-file-ignored in tests)
+    "S311",     # Non-cryptographic random — jitter doesn't need crypto; PKCE uses os.urandom
+    "PLR0913",  # Too many function arguments — fine for argparse-driven dispatchers
+    "PLR0912",  # Too many branches — sync command bodies are inherently branchy
+    "PLR0915",  # Too many statements — same
+    "PLR2004",  # Magic value comparisons — over-zealous in HTTP code (200/404 etc.)
+    "PERF203",  # try-except in loop — the http retry loops need it; can't be hoisted without losing retry state
+    "TRY003",   # Long exception messages — useful for users
+    "TRY300",   # `else` after try — sometimes harms readability
+    "TRY301",   # raise within try — needed for retry loops
+    "TRY400",   # `logging.exception` instead of `logging.error` — we don't use logging module
+    "S310",     # urllib.urlopen — we validate URLs ourselves
+    "S603",     # subprocess audit reminder — every subprocess.run in this codebase is hand-audited
+    "S607",     # subprocess partial path (`security`, `launchctl`, `openssl`) — all in /usr/bin
+    "RUF012",   # Mutable class attribs — false positives on argparse handler classes
+    "PTH123",   # open(file) — sometimes more readable than Path(...).open()
+    "PTH101",   # os.chmod — sometimes clearer next to os.open
+    "PTH111",   # os.path.expanduser — fine for one-off dest resolution
+    "ANN202",   # Private function return types — over-pedantic for small helpers
+    "SIM117",   # Combined `with` statements — separate is clearer when contexts have different scopes
+    "PLC0415",  # Import-outside-toplevel — ok in cmd_bench's lazy tempfile import
+    "TD002",    # TODO without assignee — issue tracker link is enough
+    "TD003",    # TODO without issue link — link the GitHub issue inline when warranted
+    "FIX002",   # FIXME — same; surfaced via code review
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Submodules resolve patched names through the package (`dacli._keychain_get`,
+# `dacli._STATE_CORRUPTION_WARNED`). That is deliberate — see ADR 0007 — and
+# reads as private access only because the package is its own namespace.
+"dacli/config.py" = ["SLF001"]
+"dacli/index.py" = ["SLF001"]
+"dacli/sync.py" = ["SLF001"]
+"dacli/auth.py" = ["SLF001"]
+# Command handlers reach the same patched names through the package.
+"dacli/commands/*.py" = ["SLF001"]
+# cmd_bench saves and restores the index connection where it now lives.
+# F401 is deliberately NOT suppressed here. The package __init__ re-exports
+# the names extracted into submodules, and each one says so with an explicit
+# `X as X` alias — the form ruff recognises as a re-export. A blanket
+# suppression hid 28 imports that had stopped being anything at all.
+"dacli/__init__.py" = ["SLF001"]
+"tests/**" = [
+    "D",         # docstrings optional in tests
+    "ANN",       # annotations optional in tests
+    "S101",      # `assert` is the point of tests
+    "S105",      # hardcoded "secret" strings in tests are intentional fixtures
+    "S106",      # ditto
+    "S108",      # `/tmp` in tests is intentional
+    "PLR2004",   # magic numbers in assertions are normal
+    "SLF001",    # access to "private" _funcs is the point of unit tests
+    "PT018",     # `assert A and B` is fine in tests when the conjunction is the assertion
+    "PT012",     # `pytest.raises` block complexity is a readability call, not a rule
+    "N806",      # test fixtures may use API-shaped mixedCase (e.g. `Usage` from DA)
+    "PERF401",   # manual list-build in test setup is often clearer than a comprehension
+]
+"da" = [
+    "D",         # 15-line shim, no module docstring needed beyond the existing one
+    "E402",      # sys.path setup before import is intentional
+]
+"tests/test_integration.py" = [
+    "ERA001",    # one intentional commented-out example for documentation
+]
+
+# Task tags recognised by TD / FIX rule families (top-level lint setting).
+# Listed here to keep all lint config in one block.
+# task-tags = ["TODO", "FIXME", "XXX", "HACK", "BUG"]  # default already matches
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"   # enforces Args:/Returns:/Raises: section formatting
+
+[tool.ruff.lint.isort]
+known-first-party = ["dacli"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true
+
+# ----------------------------------------------------------------------------
+# mypy — strict type checking
+# ----------------------------------------------------------------------------
+[tool.mypy]
+# Pragmatic configuration: catches real bugs without drowning in `Any` errors
+# from stdlib `json.loads()`, which legitimately returns `Any`. Strict-mode
+# would force us to write a TypedDict for every DA API response — overkill
+# for a single-file CLI that talks to a third-party schema we don't control.
+python_version = "3.10"
+# Type-check as macOS regardless of the CI host OS: the Keychain helpers are
+# darwin-only behind sys.platform guards, and mypy on the Linux runner would
+# otherwise narrow them the other way and flag their bodies as unreachable.
+platform = "darwin"
+files = ["dacli"]
+warn_unreachable = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_untyped_decorators = true
+disallow_untyped_defs = true
+no_implicit_reexport = true
+# Relax the rules that produce noise from JSON-shaped values
+disallow_any_generics = false
+warn_return_any = false
+disable_error_code = [
+    "type-arg",       # bare `dict` is fine in argparse-driven helpers
+    "no-any-return",  # json.loads() returns Any
+    "attr-defined",   # `obj.get(...)` on json-derived `object` values
+    "operator",       # arithmetic on json-derived `object` values
+    "arg-type",       # str|object polymorphism in JSON responses
+    "index",          # subscripting json-derived `object` values
+    "assignment",     # str|None narrowing in mask_secret
+]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+# ----------------------------------------------------------------------------
+# pytest + coverage
+# ----------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Exclude network tests from the default coverage-gated run so they
+# don't dilute the coverage percentage when they're skipped. Use
+# `pytest -m integration` to run them explicitly.
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=dacli",
+    "--cov-report=term-missing",
+    "--cov-report=xml:coverage.xml",
+    "--cov-fail-under=92",  # lock current state; ratchet upward with each PR
+]
+markers = [
+    "integration: tests that hit the live DA API or replay cassettes (skipped by default; opt in with `-m integration`)",
+    "integration_anonymous: client_credentials grant; no user, no expiry; CI-safe",
+    "integration_authenticated: refresh_token from state.json or DA_REFRESH_TOKEN; 90-day cadence",
+    "integration_cassette: VCR.py cassette replay; CI-safe after first recording",
+    "vcr: marks tests for VCR.py cassette record/replay (pytest-vcr plugin)",
+]
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning:http.cookiejar",  # stdlib noise
+    # Python 3.14 raises ResourceWarning when an HTTPError carrying a tempfile fp
+    # is garbage-collected. urllib.error.HTTPError is constructed with `fp=None`
+    # in our test fixtures, but pytest's unraisable hook still trips on the
+    # default-finalised HTTPError state. Silence both.
+    "ignore::ResourceWarning",
+    "ignore::pytest.PytestUnraisableExceptionWarning",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["dacli"]
+omit = ["tests/*", "tests/integration/*"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+exclude_also = [
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "pragma: no cover",
+    "if sys.platform != .darwin.:",  # platform-specific branches we can't exec everywhere
+]
+
+# ----------------------------------------------------------------------------
+# setuptools — package discovery
+# ----------------------------------------------------------------------------
+# Discover dacli and every subpackage. This must stay a glob: an explicit
+# list silently omits new subpackages, which produces a wheel that imports
+# at the top level and then fails on the first subcommand. The `da` shim at
+# the repo root serves the git-clone install path; the entry point above
+# serves the pip path.
+[tool.setuptools.packages.find]
+include = ["dacli*"]
+namespaces = false
+
+# Single source of truth for the version: __version__ in dacli/__init__.py.
+[tool.setuptools.dynamic]
+version = { attr = "dacli.__version__" }

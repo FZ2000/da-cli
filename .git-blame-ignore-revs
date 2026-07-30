@@ -1,0 +1,14 @@
+# Git blame — ignore these commits when computing line-level blame.
+# Bulk format / rename passes belong here: including them hides the actual
+# author of every line they touched.
+#
+# Format: one 40-char (or abbreviated) SHA per line, with the commit
+# subject as a comment above it. Configure git once with:
+#
+#     git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# Deliberately empty. The four SHAs listed here previously belonged to the
+# private repo's history; this repo starts from a single commit, so those
+# revs do not exist. Note that `git blame --ignore-revs-file` FAILS on an
+# unknown rev rather than skipping it, so a stale SHA here breaks blame
+# for everyone who has the config set.

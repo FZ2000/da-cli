@@ -1,0 +1,28 @@
+# markdownlint config — https://github.com/DavidAnson/markdownlint
+# Strict-but-readable rules. Pairs with .prettierrc.yaml for non-Markdown
+# formatting. Run via pre-commit (auto) or `markdownlint .` (manual).
+
+# Default to all rules ON, then carve out the pedantic ones.
+default: true
+
+# Allow long lines — README has long URLs + table rows; ruff format owns
+# Python line-length, but Markdown is human-prose and forced wraps break
+# diff readability.
+MD013: false  # line-length
+
+# Allow inline HTML — README uses <sub>, <sup>, <details> in a few spots.
+MD033: false  # no-inline-html
+
+# Allow first line to not be a top-level heading — files start with H1
+# in this repo, but pinned for forward compat if a fragment style is added.
+MD041: false  # first-line-h1
+
+# Tolerate repeated headings across sections (TOC anchors still unique).
+MD024:
+  siblings_only: true
+
+# Code-block language: required on fenced blocks so syntax-highlight works.
+MD040: true
+
+# Bare URLs: prefer <https://...> only in prose, not in lists / tables.
+MD034: true

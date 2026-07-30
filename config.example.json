@@ -1,0 +1,10 @@
+{
+  "_comment": "Copy to ~/.config/da-cli/config.json (mode 0600). client_secret should NOT live in this file on macOS — use the Keychain via `da config set client_secret <VAL>`. Non-secret fields below are safe to keep here.",
+  "client_id": "12345",
+  "destination": "~/Pictures/DA",
+  "redirect_uri": "https://localhost:8765/",
+  "delay_api": 5.0,
+  "delay_image": 1.5,
+  "jitter": 0.0,
+  "concurrency": 4
+}

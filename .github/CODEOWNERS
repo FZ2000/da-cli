@@ -1,0 +1,22 @@
+# Default code owner. Files without a more specific owner below fall back
+# here. In CODEOWNERS the LAST matching pattern wins, so the specific
+# entries go after the glob.
+* @FZ2000
+
+# Security-sensitive paths — request explicit review.
+#
+# Note on staleness: an entry that matches nothing is silently ignored by
+# GitHub, so a stale path looks like protection while providing none. Two
+# entries here were exactly that before this repo was created —
+# `dacli.py` (now the `dacli/` package) and `docs/security.md` (now
+# `docs/explanation/security.md`). Check the paths resolve when moving
+# files; `.github/workflows/codeowners-paths.yml` now does that in CI.
+dacli/                          @FZ2000
+docs/explanation/security.md    @FZ2000
+SECURITY.md                     @FZ2000
+install.sh                      @FZ2000
+install_schedule.sh             @FZ2000
+pyproject.toml                  @FZ2000
+.github/                        @FZ2000
+renovate.json                   @FZ2000
+.gitignore                      @FZ2000

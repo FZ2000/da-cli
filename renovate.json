@@ -1,0 +1,28 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "schedule": ["before 6am on Monday"],
+  "labels": ["dependencies"],
+  "commitMessagePrefix": "chore(deps)",
+  "commitMessageTopic": "{{depName}}",
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "rangeStrategy": "bump",
+  "fileMatch": [
+    "(^|/)([\\w-]*)\\.ya?ml$",
+    "(^|/)\\.github/workflows/[^/]+\\.ya?ml$",
+    "(^|/)\\.github/workflows/[^/]+\\.ya?ml$"
+  ],
+  "packageRules": [
+    {
+      "groupName": "python dev tooling",
+      "matchManagers": ["pip"],
+      "matchPackagePatterns": ["^(ruff|mypy|pytest|pytest-cov)$"]
+    },
+    {
+      "groupName": "CI actions",
+      "matchManagers": ["github-actions"],
+      "matchPackagePatterns": ["^actions/"]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+# Per-finding gitleaks suppressions (fingerprint = commit:file:rule:line).
+#
+# Deliberately empty. Prefer an entry here over widening an allowlist in
+# .gitleaks.toml — a fingerprint silences ONE known finding, an allowlist
+# silences a class — but the best state is no suppressions at all, which
+# is where this repo starts.
+#
+# The previous repo carried one entry for a client_secret committed to its
+# history. This repo is a fresh, single-commit history that does not
+# contain that commit, so there is nothing to suppress and the
+# full-history CI scan gates on genuinely new leaks only.
+#
+# If you add an entry, say WHY in a comment above it, and prefer fixing
+# the finding.

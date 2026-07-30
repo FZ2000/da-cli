@@ -1,0 +1,10 @@
+---
+name: Config.yml
+description: Issue-template chooser shown at https://github.com/FZ2000/da-cli/issues/new/choose
+contact_links:
+  - name: Security report
+    url: https://github.com/FZ2000/da-cli/security/advisories/new
+    about: Found a security issue? Open a private advisory instead of a public issue.
+  - name: Question / discussion
+    url: https://github.com/FZ2000/da-cli/issues
+    about: Questions about usage or configuration. Open a regular issue tagged "question".

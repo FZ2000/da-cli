@@ -1,0 +1,82 @@
+name: CodeQL
+
+# ---------------------------------------------------------------------------
+# Static analysis for a security-sensitive tool: da-cli runs an OAuth 2.1
+# flow, binds a loopback TLS listener, generates a self-signed certificate,
+# writes credentials to disk, and shells out to `openssl` and `launchctl`.
+# CodeQL's Python queries cover the classes that matter here — command
+# injection, path traversal, unsafe deserialisation, clear-text storage of
+# sensitive data, SSRF.
+#
+# WHY THE `if:` GUARD
+#
+# Code scanning is free for PUBLIC repositories. On a private repository it
+# requires GitHub Advanced Security, and without it the upload step fails
+# with "Advanced Security must be enabled for this repository to use code
+# scanning". This repo starts private, so the job would be permanently red
+# for a reason that has nothing to do with the code.
+#
+# The guard makes the job activate by itself the moment the repo is made
+# public — no edit required, nothing to remember. It is written as a job
+# condition rather than a commented-out file so that the intent is visible
+# and so `actionlint` still checks it.
+#
+# Verify after publication: Actions -> CodeQL should show a green run, and
+# Security -> Code scanning alerts should be populated. That check is on
+# the list in PUBLISHING.md.
+# ---------------------------------------------------------------------------
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Tuesday 07:00 UTC. Offset from the CI workflow's Monday pip-audit so
+    # the two do not contend for runner minutes, and so a new CodeQL query
+    # release gets picked up within a week even when nothing is pushed.
+    - cron: "0 7 * * 2"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  analyze:
+    name: Analyze Python
+    # Skips entirely while the repo is private. See the header.
+    if: ${{ github.event.repository.private == false }}
+    runs-on: ubuntu-latest
+    permissions:
+      # Raised above the workflow default: the upload step writes results
+      # to the Security tab. `contents: read` alone is not enough.
+      security-events: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: python
+          # security-and-quality is a superset of the default suite. The
+          # extra quality queries are noisier, but this is a small codebase
+          # with a 92% coverage gate — the signal is worth the noise.
+          queries: security-and-quality
+
+      - name: Autobuild
+        # Python needs no compilation; autobuild resolves the import graph
+        # so CodeQL can follow calls across dacli/ submodules. That matters
+        # here because the package deliberately re-exports names and reads
+        # them back through the package at call time (see ADR 0007), which
+        # a file-at-a-time scan would not connect.
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:python"

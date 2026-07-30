@@ -1,0 +1,15 @@
+# Prettier config for non-Python files (YAML, JSON, Markdown prose).
+# Python is owned by `ruff format`; prettier is the standard for
+# everything else. Run via pre-commit.
+
+printWidth: 100
+tabWidth: 2
+useTabs: false
+semi: false
+singleQuote: false
+trailingComma: "es5"
+bracketSpacing: true
+arrowParens: "always"
+endOfLine: "lf"
+proseWrap: "preserve"  # don't rewrap Markdown prose; only format code-fences
+htmlWhitespaceSensitivity: "css"

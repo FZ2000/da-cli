@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+"""Thin wrapper around ``dacli.main``.
+
+Resolves this file's real location (following symlinks), inserts the
+containing directory at the *front* of ``sys.path`` so ``dacli`` is
+importable, then delegates to ``dacli.main``.
+
+Why insert at position 0 rather than ``append``: the shim exists
+specifically to pick up the repo-local ``dacli.py`` regardless of any
+``da-cli`` that might also be installed via ``pip``. Stale checkouts
+shading a pip install is the failure mode we accept in exchange.
+"""
+import os
+import sys
+
+# Before anything else. ADR 0001 sets 3.10 as the floor because the code
+# uses PEP 604 unions evaluated at runtime, without
+# `from __future__ import annotations`. On an older interpreter the
+# import below dies with
+# `TypeError: unsupported operand type(s) for |: 'type' and 'NoneType'`
+# from somewhere deep in the package, which says nothing about the cause.
+# macOS still ships 3.9 as /usr/bin/python3, and a launchd or cron job
+# with a default PATH finds it.
+if sys.version_info < (3, 10):
+    sys.stderr.write(
+        f"da-cli needs Python 3.10 or newer; this is "
+        f"{sys.version_info.major}.{sys.version_info.minor} "
+        f"({sys.executable}).\n"
+        f"Install a newer Python, or point this shim at one:\n"
+        f"  /path/to/python3.12 {os.path.realpath(__file__)} --version\n"
+    )
+    raise SystemExit(2)
+
+_repo_root = os.path.dirname(os.path.realpath(__file__))
+if _repo_root not in sys.path:
+    sys.path.insert(0, _repo_root)
+
+from dacli import main  # noqa: E402  (sys.path setup must precede import)
+
+if __name__ == "__main__":
+    main()

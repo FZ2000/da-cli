@@ -1,0 +1,26 @@
+# EditorConfig — https://editorconfig.org
+# Keeps non-Python files consistent across editors / OSes. Pairs with
+# ruff format for Python; this file covers YAML, Markdown, bash, TOML.
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{md,yml,yaml,toml,json,cff,plist}]
+indent_size = 2
+
+[*.sh]
+indent_size = 2
+shell_variant = bash
+
+[Makefile]
+indent_style = tab
+
+[*.{py,sh,md,yml,yaml,toml,json,cff}]
+max_line_length = 100
