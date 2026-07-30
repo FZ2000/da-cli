@@ -168,8 +168,27 @@ def check_no_private_hosts(r: Result) -> None:
     tracked = subprocess.run(
         ["git", "-C", str(REPO), "ls-files"], capture_output=True, text=True, check=False
     ).stdout.split()
+
+    # A scanner that scanned nothing must not report success. `git ls-files`
+    # returns empty outside a work tree, and this rule duly "passed" against a
+    # `git checkout-index` extract — which is exactly where I ran it to gain
+    # confidence before committing. Fail loudly instead.
+    if not tracked:
+        r.check(
+            "no private-host URL in any tracked file",
+            "MEAS",
+            False,
+            "git listed no files — not a work tree, so nothing was scanned",
+        )
+        return
+
     hits: list[str] = []
     for rel in tracked:
+        # This file necessarily contains every pattern it searches for, in its
+        # own regex and in the comments explaining it. Skipping it is the
+        # standard exemption a linter needs for its own rule definitions.
+        if rel == "tools/check_discoverability.py":
+            continue
         f = REPO / rel
         if not f.is_file() or f.suffix in {".png", ".jpg", ".gif", ".webp", ".db"}:
             continue
