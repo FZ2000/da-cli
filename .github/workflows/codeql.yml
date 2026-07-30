@@ -46,10 +46,17 @@ concurrency:
 
 jobs:
   analyze:
-    name: Analyze Python
+    name: Analyze ${{ matrix.language }}
     # Skips entirely while the repo is private. See the header.
     if: ${{ github.event.repository.private == false }}
     runs-on: ubuntu-latest
+    strategy:
+      # One job per language so a failure names the language, and so the
+      # `category` below is distinct per analysis — CodeQL requires that when
+      # a repo uploads more than one SARIF result.
+      fail-fast: false
+      matrix:
+        language: [python, actions]
     permissions:
       # Raised above the workflow default: the upload step writes results
       # to the Security tab. `contents: read` alone is not enough.
@@ -57,26 +64,34 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: python
-          # security-and-quality is a superset of the default suite. The
-          # extra quality queries are noisier, but this is a small codebase
-          # with a 92% coverage gate — the signal is worth the noise.
-          queries: security-and-quality
+          # `actions` matters at least as much as `python` here: the runtime
+          # is stdlib-only, while the CI is where a public repo is actually
+          # attacked. Its queries cover workflow script injection, checkout of
+          # untrusted code in a privileged context, cache/artifact poisoning
+          # and unpinned action tags.
+          languages: ${{ matrix.language }}
+          # security-extended, not security-and-quality: the latter adds
+          # ~122 Python code-quality queries that ruff already enforces,
+          # and it disables CodeQL's autofix validation. Extended keeps the
+          # security queries without the redundancy.
+          queries: security-extended
 
       - name: Autobuild
-        # Python needs no compilation; autobuild resolves the import graph
-        # so CodeQL can follow calls across dacli/ submodules. That matters
-        # here because the package deliberately re-exports names and reads
-        # them back through the package at call time (see ADR 0007), which
-        # a file-at-a-time scan would not connect.
+        # Python needs no compilation, but autobuild resolves the import graph
+        # so CodeQL can follow calls across dacli/ submodules — which matters
+        # because the package deliberately re-exports names and reads them
+        # back through the package at call time (ADR 0007), something a
+        # file-at-a-time scan would not connect. Skipped for `actions`, which
+        # analyses YAML and has nothing to build.
+        if: matrix.language == 'python'
         uses: github/codeql-action/autobuild@v3
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
-          category: "/language:python"
+          category: "/language:${{ matrix.language }}"

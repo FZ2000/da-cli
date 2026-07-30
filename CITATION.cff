@@ -7,11 +7,15 @@ abstract: >-
   to a local destination directory, and exposes search / browse / metadata
   helpers.
 authors:
-  - alias: FZ2000
+  - name: "FZ2000"
+    alias: FZ2000
 type: software
 license: MIT
 version: "0.3.0"
-date-released: "2026-04-26"
+# date-released is deliberately omitted: it is not a required CFF field
+# and no release has ever been tagged (`git tag` is empty), so a date
+# here would assert a release that does not exist. Add it with the
+# first real tag — see CONTRIBUTING.md#releases.
 repository-code: "https://github.com/FZ2000/da-cli"
 url: "https://github.com/FZ2000/da-cli"
 keywords:

@@ -40,8 +40,10 @@ jobs:
       # burying the result in the job log.
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/dependency-review-action@v4
+      - uses: actions/checkout@v7
+      - # @v5, not @v4: this action publishes no `v4` floating major tag,
+        # only v4.x.y specifics and v5.0.0, so `@v4` fails to resolve.
+        uses: actions/dependency-review-action@v5
         with:
           # Fail on a moderate finding rather than the default `low`. The
           # dev graph is large and low-severity advisories in test tooling

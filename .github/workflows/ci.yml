@@ -69,8 +69,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
       - name: Install dev deps
@@ -114,8 +114,8 @@ jobs:
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dev deps
@@ -135,7 +135,7 @@ jobs:
         # v4: v3 was retired 2025-01-30 and now fails outright. The old
         # v3 pin existed only because Gitea's artifact server implemented
         # the v3 API and rejected v4 with GHESNotSupportedError.
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         # Never fail the build on this. The coverage GATE is enforced inside
         # the test step by pytest-cov's --cov-fail-under, so by the time we
         # get here the number has already passed or failed; this upload only
@@ -153,8 +153,8 @@ jobs:
   integration:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
       - name: Install dev deps
@@ -175,8 +175,8 @@ jobs:
   smoke:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
       - name: Run `da --version` (stdlib-only — no deps needed)
@@ -230,8 +230,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
 
@@ -322,7 +322,7 @@ jobs:
   secret-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # gitleaks needs full history to scan past commits, not just HEAD.
           fetch-depth: 0
@@ -354,7 +354,7 @@ jobs:
     # reportable finding, which gates CI.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: TruffleHog (verified/unknown findings only)
@@ -370,7 +370,7 @@ jobs:
   codespell:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install codespell
         # Into a venv: the runner image's system Python is externally
         # managed (PEP 668) and rejects a bare `pip install`.
@@ -398,8 +398,8 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
       - name: Install dev deps
@@ -422,7 +422,7 @@ jobs:
     # so "configured" and "enforced" mean the same thing.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: markdownlint
         # Pinned to the same version .pre-commit-config.yaml uses, so
         # local and CI agree. Newer versions add rules (e.g. MD060) that
@@ -435,7 +435,7 @@ jobs:
     # covered by link-check-external below.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install lychee
         run: |
           case "$(uname -m)" in
@@ -455,7 +455,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install lychee
         run: |
           case "$(uname -m)" in
@@ -473,8 +473,8 @@ jobs:
     # what actually catches a DA response-shape change.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
       - name: Install dev + integration deps
@@ -518,8 +518,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: test  # don't bother if unit tests are broken
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
       - name: Install dev + integration deps
@@ -548,12 +548,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # No token in the environment: this job runs no privileged step and
           # a checkout that leaves credentials behind is a needless one.
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
       - name: Discoverability and metadata checks
