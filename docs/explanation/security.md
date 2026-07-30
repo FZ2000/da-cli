@@ -14,7 +14,16 @@ It does protect against:
 - **Accidentally committing secrets to git.** The `.gitignore` excludes
   `config.json`, `state.json`, `sync.log`, `*.log`, and `*.tmp`. The
   example file (`config.example.json`) is a stub with no real values.
-- **Secrets leaking via process listings.** Secrets are never passed as CLI arguments (you'd see them in `ps`). They flow only through Keychain APIs, environment variables (visible only in your own shell), and `0600`-permissioned files.
+- **Secrets leaking via process listings.** Secrets are kept out of argv
+  wherever the CLI controls the call — they flow through Keychain APIs,
+  environment variables (visible only in your own shell), and
+  `0600`-permissioned files. **One documented exception:** storing the
+  client_secret in the macOS Keychain shells out to
+  `security add-generic-password -w <value>`, so for the lifetime of that
+  one short-lived process the value is visible in `ps`, and if you typed it
+  at a prompt it is in your shell history. Prefer `DA_CLIENT_SECRET` in the
+  environment, and note the secret is optional — da-cli authenticates as a
+  public client with PKCE when none is set.
 - **Stale tokens persisting in plaintext.** The state file is rewritten atomically with `0600` permissions on every refresh.
 
 ## Where each secret lives

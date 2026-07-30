@@ -1,10 +1,20 @@
 ---
-name: Config.yml
-description: Issue-template chooser shown at https://github.com/FZ2000/da-cli/issues/new/choose
+# Only two keys are valid here: blank_issues_enabled and contact_links.
+# A `name:`/`description:` pair (scaffold leftover) is silently ignored.
+
+# false, deliberately: both issue forms mark fields required, and a blank
+# issue bypasses them entirely. Default is true.
+blank_issues_enabled: false
+
 contact_links:
-  - name: Security report
+  - name: Report a security vulnerability
     url: https://github.com/FZ2000/da-cli/security/advisories/new
-    about: Found a security issue? Open a private advisory instead of a public issue.
-  - name: Question / discussion
-    url: https://github.com/FZ2000/da-cli/issues
-    about: Questions about usage or configuration. Open a regular issue tagged "question".
+    about: >-
+      Please do not open a public issue for a security problem. This opens a
+      private advisory. Requires private vulnerability reporting to be
+      enabled on the repo — see PUBLISHING.md.
+  - name: Read the docs first
+    url: https://github.com/FZ2000/da-cli/tree/main/docs
+    about: >-
+      Command reference, troubleshooting keyed by error message, and the
+      setup guide. Most usage questions are answered there.

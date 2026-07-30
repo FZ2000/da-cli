@@ -12,24 +12,24 @@ once it is public. Each one is listed with what breaks if it is missed.
 
 ### 1. Rotate the DeviantArt client secret
 
-**Status: NOT DONE. This is the hard blocker.**
+**Status: not done. This is the hard blocker.**
 
-The previous repository's git history contained a real `client_secret`, and
-that secret is still the live credential for client_id `72700`. Verified by
-comparing the value in the old history against the active local config: they
-are byte-identical.
+Rotate the app credential at <https://www.deviantart.com/developers/apps>,
+then `da config set client_secret <new>`.
 
-This repo does not contain the secret — it is a fresh single-commit history,
-the working tree was scanned clean, and `.gitleaksignore` is empty. So
-publishing *this* repo does not leak it. But the secret was exposed for the
-lifetime of the old repo and must be assumed compromised regardless of where
-it is published.
+Why, without the detail: the credential currently configured locally was
+exposed outside this repository during earlier development and must be
+treated as compromised. This repo does not contain it — the history is
+fresh, the tree scans clean, and `.gitleaksignore` is empty — so publishing
+*this* repo does not disclose it. But "the new repo is clean" and "the
+secret is safe" are different claims, and only the second one matters.
 
-Rotate at <https://www.deviantart.com/developers/apps>, then
-`da config set client_secret <new>`.
-
-Do not treat "the new repo is clean" as "the secret is safe". Those are
-different claims.
+The specifics of which credential and how it was exposed are deliberately
+not written down here. This file ships in the repository and is not
+export-ignored, so anything in it is public the moment the repo is — and a
+file that names an app whose secret is known-leaked-and-unrotated is a
+usable tip, not a checklist item. Keep that detail in your notes, not in
+git.
 
 ### 2. Confirm nothing in this tree is private
 
@@ -37,7 +37,7 @@ Two scans, because they answer different questions:
 
 ```sh
 gitleaks detect --no-git --redact          # the tree as it will be published
-gitleaks git   --redact --exit-code 1 .    # the single commit's diff
+gitleaks git   --redact --exit-code 1 .    # the committed history
 ```
 
 Both should report no leaks. Also worth a human pass for things a scanner
@@ -46,9 +46,9 @@ personal email addresses in `CITATION.cff` / `pyproject.toml` / commit
 metadata, and screenshots with a window title or sidebar that shows more than
 you meant.
 
-The private forge hostname (`*.ts.net`) has been removed from all 13 files
+The previous forge's private hostname has been removed from all 13 files
 that carried it, including the runtime `USER_AGENT` in `dacli/constants.py`
-— that one was sending the hostname to DeviantArt on every request.
+— that one was sending it to DeviantArt on every request.
 
 ### 3. Set the repository About panel
 

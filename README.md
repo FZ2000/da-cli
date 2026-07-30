@@ -94,7 +94,7 @@ Read more, by area:
 
 ## Install
 
-da-cli is a single stdlib-only Python file with no runtime dependencies. Two install paths:
+da-cli is a stdlib-only Python package with no runtime dependencies. Two install paths:
 
 **Option A — git clone + shim** (zero global state, recommended for developers):
 

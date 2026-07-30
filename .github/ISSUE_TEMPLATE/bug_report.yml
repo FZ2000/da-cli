@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Something is not working as documented
+description: Something is not working as documented
 title: "[bug] "
 labels: bug
 body:

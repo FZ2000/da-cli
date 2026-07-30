@@ -10,7 +10,8 @@
 # entries here were exactly that before this repo was created —
 # `dacli.py` (now the `dacli/` package) and `docs/security.md` (now
 # `docs/explanation/security.md`). Check the paths resolve when moving
-# files; `.github/workflows/codeowners-paths.yml` now does that in CI.
+# files; tools/check_discoverability.py asserts every pattern here matches
+# something, and the `discoverability` CI job runs it.
 dacli/                          @FZ2000
 docs/explanation/security.md    @FZ2000
 SECURITY.md                     @FZ2000

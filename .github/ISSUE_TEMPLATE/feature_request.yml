@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest a new command, flag, or behaviour change
+description: Suggest a new command, flag, or behaviour change
 title: "[feat] "
 labels: enhancement
 body:

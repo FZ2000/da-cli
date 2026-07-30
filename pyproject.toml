@@ -81,7 +81,11 @@ da = "dacli:main"
 # deprecation warning on pip 25+.
 # ----------------------------------------------------------------------------
 [build-system]
-requires = ["setuptools>=68"]
+# >=77: `license = "MIT"` as an SPDX string plus `license-files`
+# is PEP 639, which setuptools implemented in 77.0.0. On 68-76 the
+# build fails validation — it only appears to work because pip's
+# isolated build environment installs the newest setuptools.
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 # ----------------------------------------------------------------------------
@@ -91,6 +95,10 @@ build-backend = "setuptools.build_meta"
 target-version = "py310"
 line-length = 100
 extend-exclude = ["build", "dist", ".venv"]
+# The `da` entry-point shim is Python with no .py suffix. Ruff matches on
+# extension, not shebang, so without this it is silently unlinted — it had
+# 3 real violations and a formatting diff while `ruff check .` passed.
+extend-include = ["da"]
 required-version = ">=0.6"
 
 [tool.ruff.lint]

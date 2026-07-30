@@ -10,6 +10,7 @@ specifically to pick up the repo-local ``dacli.py`` regardless of any
 ``da-cli`` that might also be installed via ``pip``. Stale checkouts
 shading a pip install is the failure mode we accept in exchange.
 """
+
 import os
 import sys
 
@@ -21,7 +22,7 @@ import sys
 # from somewhere deep in the package, which says nothing about the cause.
 # macOS still ships 3.9 as /usr/bin/python3, and a launchd or cron job
 # with a default PATH finds it.
-if sys.version_info < (3, 10):
+if sys.version_info < (3, 10):  # noqa: UP036 — see above: this must run ON 3.9
     sys.stderr.write(
         f"da-cli needs Python 3.10 or newer; this is "
         f"{sys.version_info.major}.{sys.version_info.minor} "
@@ -31,11 +32,15 @@ if sys.version_info < (3, 10):
     )
     raise SystemExit(2)
 
-_repo_root = os.path.dirname(os.path.realpath(__file__))
+# PTH120 is suppressed on the next line: os.path, not pathlib, because this
+# shim must import nothing that a 3.9 interpreter would choke on before the
+# version guard above has had a chance to print a readable error.
+_repo_root = os.path.dirname(os.path.realpath(__file__))  # noqa: PTH120
 if _repo_root not in sys.path:
     sys.path.insert(0, _repo_root)
 
-from dacli import main  # noqa: E402  (sys.path setup must precede import)
+# Import deliberately after the sys.path setup above.
+from dacli import main
 
 if __name__ == "__main__":
     main()

@@ -243,6 +243,37 @@ def check_community_files(r: Result) -> None:
             r.check("FUNDING.yml is in .github/", "DOC", False, f"found at {d or '.'}/")
 
 
+def check_codeowners_paths(r: Result) -> None:
+    """Every CODEOWNERS pattern must match something.
+
+    GitHub silently ignores a pattern that matches no file, so a stale path
+    reads as review protection while providing none. Two entries here were
+    exactly that before this check existed: `dacli.py` (now the `dacli/`
+    package) and `docs/security.md` (now under `docs/explanation/`).
+    """
+    p = REPO / ".github/CODEOWNERS"
+    if not p.exists():
+        r.skip("CODEOWNERS path checks", "no .github/CODEOWNERS")
+        return
+    dead: list[str] = []
+    for raw in p.read_text().splitlines():
+        line = raw.split("#", 1)[0].strip()
+        if not line:
+            continue
+        pattern = line.split()[0]
+        if pattern == "*":
+            continue
+        target = REPO / pattern.lstrip("/")
+        if not target.exists():
+            dead.append(pattern)
+    r.check(
+        "every CODEOWNERS pattern matches something",
+        "DOC",
+        not dead,
+        f"dead: {dead}" if dead else "",
+    )
+
+
 def check_citation(r: Result) -> None:
     p = REPO / "CITATION.cff"
     if not p.exists():
@@ -410,6 +441,7 @@ def main() -> int:
     check_readme(r)
     check_no_private_hosts(r)
     check_community_files(r)
+    check_codeowners_paths(r)
     check_citation(r)
     check_pyproject(r)
     if args.github:

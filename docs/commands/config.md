@@ -101,8 +101,8 @@ $ da config show
   "client_secret": "4f8c...3b5d"
 }
 
-config file: /private/tmp/claude-501/da-demo/config/da-cli/config.json
-state file:  /private/tmp/claude-501/da-demo/state/da-cli/state.json
+config file: /tmp/da-demo/config/da-cli/config.json
+state file:  /tmp/da-demo/state/da-cli/state.json
 keychain:    service="da-cli" (used for ['client_secret'])
 ```
 
@@ -110,11 +110,11 @@ With a damaged config file:
 
 ```console
 $ da config show
-[warn]  /private/tmp/claude-501/da-demo/config/da-cli/config.json: invalid JSON (Expecting property name enclosed in double quotes: line 1 column 3 (char 2)); ignoring
+[warn]  /tmp/da-demo/config/da-cli/config.json: invalid JSON (Expecting property name enclosed in double quotes: line 1 column 3 (char 2)); ignoring
 {}
 
-config file: /private/tmp/claude-501/da-demo/config/da-cli/config.json
-state file:  /private/tmp/claude-501/da-demo/state/da-cli/state.json
+config file: /tmp/da-demo/config/da-cli/config.json
+state file:  /tmp/da-demo/state/da-cli/state.json
 keychain:    service="da-cli" (used for ['client_secret'])
 ```
 
@@ -153,16 +153,16 @@ below are not the usual `~/.config` and `~/.local/state`.
 
 ```console
 $ da config path
-config: /private/tmp/claude-501/da-demo/config/da-cli/config.json
-state:  /private/tmp/claude-501/da-demo/state/da-cli/state.json
+config: /tmp/da-demo/config/da-cli/config.json
+state:  /tmp/da-demo/state/da-cli/state.json
 ```
 
 `--config` moves the first line only:
 
 ```console
-$ da --config /private/tmp/claude-501/da-demo/other.json config path
-config: /private/tmp/claude-501/da-demo/other.json
-state:  /private/tmp/claude-501/da-demo/state/da-cli/state.json
+$ da --config /tmp/da-demo/other.json config path
+config: /tmp/da-demo/other.json
+state:  /tmp/da-demo/state/da-cli/state.json
 ```
 
 ## config set
@@ -240,9 +240,9 @@ Setting the two non-secret keys, then the secret:
 
 ```console
 $ da config set client_id 12345
-stored client_id in /private/tmp/claude-501/da-demo/config/da-cli/config.json
+stored client_id in /tmp/da-demo/config/da-cli/config.json
 $ da config set destination '~/Pictures/DA'
-stored destination in /private/tmp/claude-501/da-demo/config/da-cli/config.json
+stored destination in /tmp/da-demo/config/da-cli/config.json
 $ da config set client_secret <your-client-secret>
 stored client_secret in macOS Keychain (service=da-cli)
 ```
@@ -254,14 +254,14 @@ cleanup:
 ```console
 $ da config set client_secret <your-client-secret>
 stored client_secret in macOS Keychain (service=da-cli)
-removed the older client_secret from /private/tmp/claude-501/da-demo/config/da-cli/config.json
+removed the older client_secret from /tmp/da-demo/config/da-cli/config.json
 ```
 
 The fallback, as a Linux user sees it every time:
 
 ```console
 $ da config set client_secret <your-client-secret>
-[warn]  stored client_secret in /private/tmp/claude-501/da-demo/config/da-cli/config.json (Keychain unavailable). Permissions are 0600 — the file is still secret-bearing; avoid syncing this directory to cloud storage.
+[warn]  stored client_secret in /tmp/da-demo/config/da-cli/config.json (Keychain unavailable). Permissions are 0600 — the file is still secret-bearing; avoid syncing this directory to cloud storage.
 ```
 
 ### Exit codes
@@ -393,7 +393,7 @@ Removing a secret that lives in both stores:
 ```console
 $ da config unset client_secret
 removed client_secret from macOS Keychain
-removed client_secret from /private/tmp/claude-501/da-demo/config/da-cli/config.json
+removed client_secret from /tmp/da-demo/config/da-cli/config.json
 ```
 
 Running it again:
