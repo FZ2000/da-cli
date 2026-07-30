@@ -57,8 +57,10 @@ and what search engines show as the snippet. An empty About panel means the
 snippet gets scraped from whatever text happens to be near the top of the
 README.
 
-- **Description** and **Topics**: see `docs/seo.md` for the exact values and
-  the reasoning.
+- **Description**: already set on the repo, and mirrored in
+  `pyproject.toml`'s `description` so PyPI and GitHub agree.
+- **Topics**: set them. GitHub allows up to 20; they drive GitHub's own
+  search and appear in the page markup.
 - **Website**: leave blank until GitHub Pages is live, then point it there.
 
 ## Activates automatically on publication — verify, do not edit

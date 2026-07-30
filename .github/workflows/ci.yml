@@ -136,6 +136,14 @@ jobs:
         # v3 pin existed only because Gitea's artifact server implemented
         # the v3 API and rejected v4 with GHESNotSupportedError.
         uses: actions/upload-artifact@v4
+        # Never fail the build on this. The coverage GATE is enforced inside
+        # the test step by pytest-cov's --cov-fail-under, so by the time we
+        # get here the number has already passed or failed; this upload only
+        # exists so a human can download the report. It is also the one step
+        # that depends on a shared, account-wide resource — the first run of
+        # this repo failed here with "Artifact storage quota has been hit",
+        # which said nothing about the commit under test.
+        continue-on-error: true
         with:
           name: coverage-report
           path: coverage.xml
