@@ -1,5 +1,11 @@
 [project]
-name = "da-cli"
+# The PyPI distribution name. NOT the import name (that is `dacli`) and
+# not the command (that is `da`). It is `da-sync` rather than `da-cli`
+# because PyPI refuses `da-cli` as too similar to the unrelated `dacli`
+# project — the two differ only by a separator, which is precisely what
+# its typosquat guard exists to catch. Note the name being free is not
+# sufficient: `da-cli` returns 404 and is still rejected.
+name = "da-sync"
 description = "Sync DeviantArt galleries to local folders — zero-dependency Python CLI with OAuth 2.1 PKCE, a SQLite index, and scheduled macOS syncs."
 readme = "README.md"
 license = "MIT"
@@ -68,7 +74,7 @@ Issues = "https://github.com/FZ2000/da-cli/issues"
 Changelog = "https://github.com/FZ2000/da-cli/blob/main/CHANGELOG.md"
 Documentation = "https://github.com/FZ2000/da-cli#readme"
 
-# `pip install da-cli` exposes a `da` script on PATH. This is the
+# `pip install da-sync` exposes a `da` script on PATH. This is the
 # pip-installable counterpart of the `da` shim in the repo root; the
 # shim still exists for the git-clone-and-symlink install path
 # (see install.sh) used in the README.

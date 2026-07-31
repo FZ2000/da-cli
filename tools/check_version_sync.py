@@ -85,9 +85,10 @@ def problems() -> list[str]:
                 f"docs/reference/cli.md says version {found.group(1)}; run tools/gen_cli_docs.py"
             )
 
-    # Any other file quoting a DIFFERENT release version in prose. Scoped to
-    # `da-cli <x.y.z>` and `v<x.y.z>` so it cannot trip on the pinned versions
-    # of third-party tools, which are unrelated and legitimately differ.
+    # Any other file quoting a DIFFERENT release version in prose. Matches
+    # both names this project answers to — `da-cli` is the HTTP User-Agent
+    # and the repo, `da-sync` is the PyPI distribution — and nothing else,
+    # so it cannot trip on the pinned versions of third-party tools.
     tracked = subprocess.run(
         ["git", "-C", str(REPO), "ls-files"], capture_output=True, text=True, check=False
     ).stdout.split()
@@ -109,7 +110,7 @@ def problems() -> list[str]:
         for i, line in enumerate(body.splitlines(), 1):
             out.extend(
                 f"{rel}:{i}: quotes da-cli {other}, but the package is {VERSION}"
-                for other in re.findall(r"\bda-cli[ /]v?(\d+\.\d+\.\d+)\b", line)
+                for other in re.findall(r"\b(?:da-cli|da-sync)[ /]v?(\d+\.\d+\.\d+)\b", line)
                 if other != VERSION
             )
     return out

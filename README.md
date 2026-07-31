@@ -105,15 +105,19 @@ cd ~/Documents/da-cli
 ./install.sh                           # copies da + the dacli package to ~/.local/share/da-cli/ and symlinks ~/.local/bin/da → that copy
 ```
 
-**Option B — pip install.** Not available: **da-cli is not published to
-PyPI**, and the name is currently unregistered. Use Option A.
+**Option B — pip install.** Not published yet. Use Option A for now.
 
-Do not `pip install da-cli` on the strength of this README. Until the name
-appears here as published, anything under it on PyPI is not this project —
-and since this package installs a `da` command onto your `PATH` and handles
-DeviantArt OAuth tokens, installing an impostor is not a harmless mistake.
+When it is published the distribution will be named **`da-sync`**, not
+`da-cli`:
 
-Note also that `dacli` (no hyphen) on PyPI is an unrelated project.
+```bash
+pipx install da-sync                   # the command is still `da`
+```
+
+Two names on PyPI are close to this project and are **not** it: `dacli`
+(an unrelated data-engineering tool) and `da-cli` (unregistered). Since
+this package installs a `da` command onto your `PATH` and handles
+DeviantArt OAuth tokens, check the name before installing anything.
 
 Python 3.10+ required (uses `argparse.BooleanOptionalAction` and `X | None` syntax). No third-party runtime dependencies.
 
