@@ -111,7 +111,8 @@ fi
 
 DA_BIN="$(command -v da || true)"
 if [[ -z "$DA_BIN" ]]; then
-  echo "error: 'da' not found on PATH. Run ./install.sh first." >&2
+  echo "error: 'da' not found on PATH. Install it first — either" >&2
+  echo "       './install.sh' from this repository, or 'pipx install da-sync'." >&2
   exit 1
 fi
 

@@ -49,9 +49,41 @@ Check again with `python3 --version` to confirm it's 3.10 or higher.
 
 ---
 
-## Step 2: Download and install da-cli
+## Step 2: Install da-cli
 
-In your Terminal, run these three commands one at a time:
+There are two ways. Read both first — they suit different people.
+
+### Option A — install from PyPI (simplest)
+
+The package is published under the name **`da-sync`**, and the command it
+installs is called `da`. In your Terminal:
+
+```bash
+pipx install da-sync
+```
+
+If you don't have `pipx`, `python3 -m pip install --user da-sync` also
+works. `pipx` is worth the extra step, because it gives the tool its own
+private environment instead of mixing it into your system Python.
+
+Check that it worked:
+
+```bash
+da --version
+```
+
+```text
+da-cli 0.1.0
+```
+
+### Option B — clone the repository
+
+Pick this one if you also want the optional macOS scheduling script from
+[Daily automatic downloads](#optional-daily-automatic-downloads-macos)
+below. That script lives in the repository and is **not** part of the
+PyPI package, so Option A cannot give it to you.
+
+Run these three commands one at a time:
 
 ```bash
 git clone https://github.com/FZ2000/da-cli.git ~/da-cli
@@ -70,11 +102,14 @@ You should see output like:
 ```text
 installed:
   ~/.local/share/da-cli/da
-  ~/.local/share/da-cli/dacli/
+  ~/.local/share/da-cli/dacli/  (17 modules)
   ~/.local/bin/da -> ~/.local/share/da-cli/da
 
 da-cli 0.1.0
 ```
+
+The module count reflects however many files the package currently has,
+so don't worry if it isn't exactly 17.
 
 **If you see a version number** — installation worked. Move to Step 3.
 
@@ -350,6 +385,17 @@ da diagnose                          # health check (config, auth, disk space)
 ## Optional: Daily automatic downloads (macOS)
 
 Want art downloaded automatically every day at 3 AM?
+
+This step uses `install_schedule.sh`, which ships in the repository but
+not in the PyPI package. If you installed with Option A, get it first:
+
+```bash
+git clone https://github.com/FZ2000/da-cli.git ~/da-cli
+cd ~/da-cli
+```
+
+If you installed with Option B you are already in that directory. Either
+way, then run:
 
 ```bash
 ./install_schedule.sh

@@ -6,6 +6,18 @@ watched artists posted.
 
 ## macOS
 
+`install_schedule.sh` is part of the repository, not of the `da-sync`
+package on PyPI. If you installed with `pipx`, clone the repository to
+get it — the script drives whatever `da` is already on your `PATH`, so
+you do not need to reinstall:
+
+```bash
+git clone https://github.com/FZ2000/da-cli.git ~/da-cli
+cd ~/da-cli
+```
+
+Then, from that directory:
+
 ```bash
 ./install_schedule.sh              # daily at 03:00
 ./install_schedule.sh uninstall    # remove it
