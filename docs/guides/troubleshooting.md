@@ -86,9 +86,13 @@ DeviantArt rejected your `redirect_uri` because it does not match the
 OAuth app's whitelist **byte for byte**. Trailing slash, port, case,
 scheme, and any query string all matter.
 
-Open <https://www.deviantart.com/settings/applications>, click your
-app, and check "OAuth2 Redirect URI Whitelist" against what `da` sends
-— by default `https://localhost:8765/`.
+Open the developer portal at
+<https://www.deviantart.com/developers/>, click your app, and check
+"OAuth2 Redirect URI Whitelist" against what `da` sends — by default
+`https://localhost:8765/`. (Not
+<https://www.deviantart.com/settings/applications>: that page lists the
+apps you have *authorised* and is where you revoke them. It cannot edit
+the whitelist.)
 
 | Whitelisted | `da` sends | Result |
 | --- | --- | --- |
@@ -157,8 +161,8 @@ da config show          # secrets are masked
 
 ### `token exchange returned: {'error': 'invalid_client'}`
 
-The `client_secret` does not match the `client_id`. Re-copy it from
-<https://www.deviantart.com/settings/applications> — DeviantArt
+The `client_secret` does not match the `client_id`. Re-copy it from the
+developer portal, <https://www.deviantart.com/developers/> — DeviantArt
 secrets are 32 characters, so a truncated paste is the usual cause.
 
 ### `Refresh token is invalid` / `no refresh_token stored`

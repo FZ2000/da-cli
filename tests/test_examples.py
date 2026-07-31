@@ -1,7 +1,7 @@
 """The shipped example scripts have to actually run.
 
 ``examples/`` is documentation-grade code — people copy-paste it, and
-``sync-curated-topics.sh`` shipped with ``--limit 50`` against an endpoint
+``browse-curated-topics.sh`` shipped with ``--limit 50`` against an endpoint
 DeviantArt caps at 24. Every run died on its first topic with HTTP 400,
 and under ``set -euo pipefail`` that ended the script. The in-file comment
 ("--limit 50 keeps each topic's wall-time bounded") shows it was written

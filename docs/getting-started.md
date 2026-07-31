@@ -128,7 +128,7 @@ Here's what each field means:
 | **Title** | `da-cli` | Any name you like; this is just a label. |
 | **Description** | *(leave blank)* | Optional; not used by da-cli. |
 | **OAuth2 Redirect URI Whitelist** | `https://localhost:8765/` | This is the address da-cli listens on for the login callback. **Must match exactly** — including the trailing slash. |
-| **Client type** | **Confidential** | Required so da-cli can access public DA endpoints (daily deviations, topics, tag search) without requiring a browser login each time. Also issues a `client_secret` that da-cli stores securely. |
+| **Client type** | **Confidential** | Issues a `client_secret`, which da-cli stores in the macOS Keychain and sends on the token exchange. It is **optional** — every code path guards on it, and without one da-cli authenticates as a public client using PKCE, which is what DeviantArt's own form recommends for desktop apps. Choose Confidential if you want the secret; Public works too. |
 | **Download URL** | *(leave blank)* | Not used by da-cli. |
 | **Original URLs Whitelist** | *(leave blank)* | Not used by da-cli. |
 

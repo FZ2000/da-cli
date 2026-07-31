@@ -176,9 +176,9 @@ This is documented separately in [docs/explanation/security.md](docs/explanation
 ## Examples
 
 The [`examples/` directory](examples/) has runnable recipes: a
-post-sync webhook, a cron health check, a CSV export, and a
-topic-curated sync. Each is a short shell or Python script you can copy
-and edit.
+post-sync webhook, a cron health check, a CSV export, and a topic
+browser that lists what a curated DA topic holds. Each is a short shell
+or Python script you can copy and edit.
 
 ## Contributing
 

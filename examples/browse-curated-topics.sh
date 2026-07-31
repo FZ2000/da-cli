@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
-# examples/sync-curated-topics.sh
+# examples/browse-curated-topics.sh
 #
-# Pull only deviations filed under curated DA topics, skip the
-# watch feed entirely. Useful when the user wants reference photos for
-# art practice without ingesting every watcher's full output.
+# List what curated DA topics currently hold: deviation ids and titles,
+# one line each. Useful for finding reference material without ingesting
+# every watched artist's full output.
+#
+# This script DOWNLOADS NOTHING. `da search` is a read-only browse — see
+# docs/commands/search.md. To actually fetch what you find here, pass an
+# artist to `da sync artist <name>`; there is no per-topic sync mode.
 #
 # Prereqs: `./install.sh` and `da auth` done once.
 
