@@ -19,5 +19,5 @@ install.sh                      @FZ2000
 install_schedule.sh             @FZ2000
 pyproject.toml                  @FZ2000
 .github/                        @FZ2000
-renovate.json                   @FZ2000
+renovate.json5                  @FZ2000
 .gitignore                      @FZ2000
