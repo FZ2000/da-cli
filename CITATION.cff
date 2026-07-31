@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use da-cli, please cite it as below."
+title: "da-cli: a stdlib-only DeviantArt CLI for sync, search, and browse"
+abstract: >-
+  A Python 3 command-line tool (no runtime dependencies) that authenticates
+  against DeviantArt with OAuth 2.1 + PKCE, syncs watched-artist galleries
+  to a local destination directory, and exposes search / browse / metadata
+  helpers.
+authors:
+  - name: "FZ2000"
+    alias: FZ2000
+type: software
+license: MIT
+version: "0.3.0"
+# date-released is deliberately omitted: it is not a required CFF field
+# and no release has ever been tagged (`git tag` is empty), so a date
+# here would assert a release that does not exist. Add it with the
+# first real tag — see CONTRIBUTING.md#releases.
+repository-code: "https://github.com/FZ2000/da-cli"
+url: "https://github.com/FZ2000/da-cli"
+keywords:
+  - deviantart
+  - cli
+  - oauth
+  - sync
+  - gallery
+  - python
+  - stdlib

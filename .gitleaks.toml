@@ -1,0 +1,60 @@
+# gitleaks config — defense-in-depth for da-cli.
+#
+# Layering (see docs/explanation/security.md "Secret-scanning defense layers"):
+#   1. pre-commit hook — scans the staged diff before a commit exists
+#   2. CI secret-scan job — scans the full git history on every push/PR
+#   3. GitHub secret scanning + push protection — provider patterns only
+#
+# The custom rule below exists because the default generic-api-key rule
+# requires an assignment operator (=, :, =>, ...) between keyword and
+# value, so a CLI example like
+#
+#     da config set client_secret <32-hex-value>
+#
+# never matches it (keyword and value are separated by a plain space).
+# DeviantArt client secrets are bare 32-char lowercase hex with no
+# provider prefix, so GitHub's push protection cannot catch them either —
+# this rule is the only automated layer that does.
+
+title = "da-cli gitleaks config"
+
+[extend]
+# Start from gitleaks' default ruleset; everything below is additive.
+useDefault = true
+
+[[rules]]
+id = "da-client-secret-near-keyword"
+description = "32-char hex value near a 'secret' keyword, with or without an assignment operator (catches shell examples like `da config set client_secret <hex>`)"
+# 'secret' also matches as the suffix of client_secret / api_secret. The
+# separator class allows plain whitespace — exactly the form the default
+# generic-api-key rule refuses to match. The trailing \b stops the rule
+# matching the first 32 chars of a 40-hex git SHA or a 64-hex SHA-256.
+regex = '''(?i)secret[a-z_-]{0,10}[\s"'`:=]{1,10}([a-f0-9]{32})\b'''
+secretGroup = 1
+entropy = 3.0
+keywords = ["secret"]
+
+  [[rules.allowlists]]
+  # Documentation/test placeholders only. Keep this list value-level and
+  # narrow; never allowlist whole paths for this rule — docs and CLI
+  # examples are exactly where a real secret would be pasted.
+  regexes = [
+      '''0{32}''',
+      '''(?i)0123456789abcdef0123456789abcdef''',
+  ]
+
+[allowlist]
+description = "Verified-benign test material"
+paths = [
+    # Recorded VCR cassettes. The `jwt` hits in them are wixmp CDN
+    # signed-URL tokens — public, short-lived tokens embedded in every
+    # DeviantArt API response body, not credentials. Real auth material
+    # never reaches a cassette: Authorization headers, token query
+    # params, and environment-leaking response headers are stripped at
+    # record time by the scrubbers in tests/integration/conftest.py.
+    '''tests/(integration|network)/cassettes/.*\.yaml''',
+]
+regexes = [
+    # The dummy client_secret used by config-roundtrip tests.
+    '''1234567890abcdef''',
+]

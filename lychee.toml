@@ -1,0 +1,29 @@
+# lychee link-checker config — used by the CI `link-check` (internal,
+# every push/PR) and `link-check-external` (weekly) jobs.
+
+max_concurrency = 8
+timeout = 20
+max_retries = 2
+
+# Rate-limited responses are not stale links.
+accept = ["200..=204", "429"]
+
+exclude = [
+    # The repo's own GitHub URLs, while the repository is not public:
+    # GitHub answers 404 to anonymous requests, so these are unverifiable
+    # rather than broken. REMOVE THIS ENTRY once the repository is public —
+    # leaving it in would hide genuinely dead self-links, and a link
+    # checker configured never to look at a URL is worse than no checker.
+    "^https://github\\.com/FZ2000/da-cli",
+    # Loopback / redirect-URI examples in the OAuth docs.
+    "^https?://(localhost|127\\.0\\.0\\.1)",
+    # Placeholder domains used in config examples.
+    "yoursite\\.com",
+    # DA API base — endpoint URLs in docs need auth and would 401.
+    "www\\.deviantart\\.com/api/",
+    # Shields.io badge URLs render fine but throttle checkers hard.
+    "img\\.shields\\.io",
+]
+
+# Never probe private/reserved IPs from CI.
+exclude_all_private = true

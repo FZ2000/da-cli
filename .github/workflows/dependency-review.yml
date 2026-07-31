@@ -1,0 +1,58 @@
+name: Dependency review
+
+# ---------------------------------------------------------------------------
+# Blocks a PR that introduces a dependency with a known vulnerability or an
+# incompatible licence, by diffing the dependency graph between the base and
+# the head of the PR.
+#
+# This matters less here than in most projects and is still worth having.
+# da-cli's RUNTIME has zero dependencies — that is ADR 0001 and the whole
+# point of the tool — so nothing this job blocks can reach a user who simply
+# installed it. What it guards is the DEV toolchain: ruff, mypy, pytest,
+# pytest-cov and their transitive graph, which run on maintainer machines and
+# in CI with a repository token. That is a supply-chain surface even when the
+# shipped artifact has none.
+#
+# It complements, not duplicates, the weekly `pip-audit` job in ci.yml:
+# pip-audit tells you an already-installed dependency has a new CVE;
+# this tells you a PR is about to add one, before it merges.
+#
+# Same caveat as codeql.yml: the dependency-review API needs the
+# dependency graph, which is not available on every plan for private
+# repositories. The guard means this activates by itself where it can run,
+# with no edit.
+# ---------------------------------------------------------------------------
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    # Skips while private. See the header.
+    if: ${{ github.event.repository.private == false }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Lets the action leave its summary as a PR comment rather than
+      # burying the result in the job log.
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+      - # @v5, not @v4: this action publishes no `v4` floating major tag,
+        # only v4.x.y specifics and v5.0.0, so `@v4` fails to resolve.
+        uses: actions/dependency-review-action@v5
+        with:
+          # Fail on a moderate finding rather than the default `low`. The
+          # dev graph is large and low-severity advisories in test tooling
+          # would block PRs without telling us anything actionable; a
+          # moderate in something that runs with a repo token is worth
+          # stopping for.
+          fail-on-severity: moderate
+          # The project is MIT. These are the licences that would make a
+          # dev dependency awkward to redistribute or would impose terms
+          # the project cannot meet.
+          deny-licenses: AGPL-3.0, GPL-3.0, LGPL-3.0, SSPL-1.0
+          comment-summary-in-pr: on-failure

@@ -1,0 +1,81 @@
+# Pre-commit hooks — https://pre-commit.com
+# Mirrors what CI runs (ruff check, ruff format --check, mypy, plus
+# lightweight file-level scans). Install once with:
+#
+#     pip install pre-commit
+#     pre-commit install
+#
+# Then every `git commit` runs the hooks below. Bypass locally with
+# `git commit --no-verify` (CI will still run them).
+
+repos:
+  # Secret scanning first: fail fast on a leaked credential before any
+  # formatter mutates the diff. Scans EVERYTHING staged — no path
+  # excludes. Benign fixtures are allowlisted value-by-value in
+  # .gitleaks.toml, never by directory: a path exclude here is exactly
+  # how a real secret in tests/ or docs/ would slip through.
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.0      # keep in sync with the dev extra's floor
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.20.0
+    hooks:
+      - id: mypy
+        files: ^dacli/
+        # Pinned to the same platform + disabled-error-code set as
+        # pyproject.toml's [tool.mypy].
+        # Pre-commit's mypy runs in its own venv; we feed it our config
+        # via the args below so the local cache stays consistent.
+        args:
+          - "--python-version=3.10"
+          # pyproject sets platform = "darwin" so the Keychain branches are
+          # not narrowed away as unreachable. Omitting it here made this hook
+          # check different code than CI does, under a comment claiming the
+          # arg set was pinned to match.
+          - "--platform=darwin"
+          - "--disallow-untyped-defs"
+          - "--disallow-untyped-decorators"
+          - "--no-implicit-reexport"
+          - "--warn-unreachable"
+          - "--warn-redundant-casts"
+          - "--warn-unused-ignores"
+          - "--disable-error-code=type-arg"
+          - "--disable-error-code=no-any-return"
+          - "--disable-error-code=attr-defined"
+          - "--disable-error-code=operator"
+          - "--disable-error-code=arg-type"
+          - "--disable-error-code=index"
+          - "--disable-error-code=assignment"
+        additional_dependencies: []
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: check-case-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: detect-private-key
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.45.0
+    hooks:
+      - id: markdownlint
+        args: [--config=.markdownlint.yaml]

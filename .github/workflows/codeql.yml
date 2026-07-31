@@ -1,0 +1,96 @@
+name: CodeQL
+
+# ---------------------------------------------------------------------------
+# Static analysis for a security-sensitive tool: da-cli runs an OAuth 2.1
+# flow, binds a loopback TLS listener, generates a self-signed certificate,
+# writes credentials to disk, and shells out to `openssl` and `launchctl`.
+# CodeQL's Python queries cover the classes that matter here — command
+# injection, path traversal, unsafe deserialisation, clear-text storage of
+# sensitive data, SSRF.
+#
+# WHY THE `if:` GUARD
+#
+# Code scanning is free for PUBLIC repositories. On a private repository it
+# requires GitHub Advanced Security, and without it the upload step fails
+# with "Advanced Security must be enabled for this repository to use code
+# scanning". This repo starts private, so the job would be permanently red
+# for a reason that has nothing to do with the code.
+#
+# The guard makes the job activate by itself the moment the repo is made
+# public — no edit required, nothing to remember. It is written as a job
+# condition rather than a commented-out file so that the intent is visible
+# and so `actionlint` still checks it.
+#
+# Once enabled: Actions -> CodeQL should show a green run, and
+# Security -> Code scanning alerts should be populated.
+# ---------------------------------------------------------------------------
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Tuesday 07:00 UTC. Offset from the CI workflow's Monday pip-audit so
+    # the two do not contend for runner minutes, and so a new CodeQL query
+    # release gets picked up within a week even when nothing is pushed.
+    - cron: "0 7 * * 2"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  analyze:
+    name: Analyze ${{ matrix.language }}
+    # Skips entirely while the repo is private. See the header.
+    if: ${{ github.event.repository.private == false }}
+    runs-on: ubuntu-latest
+    strategy:
+      # One job per language so a failure names the language, and so the
+      # `category` below is distinct per analysis — CodeQL requires that when
+      # a repo uploads more than one SARIF result.
+      fail-fast: false
+      matrix:
+        language: [python, actions]
+    permissions:
+      # Raised above the workflow default: the upload step writes results
+      # to the Security tab. `contents: read` alone is not enough.
+      security-events: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          # `actions` matters at least as much as `python` here: the runtime
+          # is stdlib-only, while the CI is where a public repo is actually
+          # attacked. Its queries cover workflow script injection, checkout of
+          # untrusted code in a privileged context, cache/artifact poisoning
+          # and unpinned action tags.
+          languages: ${{ matrix.language }}
+          # security-extended, not security-and-quality: the latter adds
+          # ~122 Python code-quality queries that ruff already enforces,
+          # and it disables CodeQL's autofix validation. Extended keeps the
+          # security queries without the redundancy.
+          queries: security-extended
+
+      - name: Autobuild
+        # Python needs no compilation, but autobuild resolves the import graph
+        # so CodeQL can follow calls across dacli/ submodules — which matters
+        # because the package deliberately re-exports names and reads them
+        # back through the package at call time (ADR 0007), something a
+        # file-at-a-time scan would not connect. Skipped for `actions`, which
+        # analyses YAML and has nothing to build.
+        if: matrix.language == 'python'
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"

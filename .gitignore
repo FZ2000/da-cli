@@ -1,0 +1,33 @@
+# Local secrets / state — never commit
+config.json
+state.json
+*.log
+*.tmp
+*.corrupt-*
+loopback-*.pem
+
+# OS / editor noise
+.DS_Store
+.idea/
+.vscode/
+__pycache__/
+*.pyc
+
+# Built artifacts
+dist/
+build/
+*.egg-info/
+
+# Tooling caches / coverage output
+.venv-dev/
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Subprocess tests in test_faults.py spawn helpers that occasionally leave
+# pytest tmp roots in the repo; keep them out of git.
+pytest-*/

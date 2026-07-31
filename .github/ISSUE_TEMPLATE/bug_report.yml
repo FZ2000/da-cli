@@ -1,0 +1,53 @@
+---
+name: Bug report
+description: Something is not working as documented
+title: "[bug] "
+labels: bug
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the unexpected behaviour. Include the command you ran.
+      placeholder: |
+        $ da sync feed --jitter 0.3
+        ... (output / error)
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: da-cli version
+      description: Output of `da --version`
+      placeholder: "0.3.0"
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Platform + Python version
+      description: e.g. macOS 15 / Python 3.13
+      placeholder: "macOS / Python 3.13.x"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / diagnostics
+      description: Output of `da diagnose` (secrets are masked automatically). Redact anything personal before pasting.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Preflight
+      options:
+        - label: I ran `da diagnose` and report its output above
+          required: false
+        - label: I checked the existing issues for duplicates
+          required: true
