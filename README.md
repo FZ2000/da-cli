@@ -105,13 +105,15 @@ cd ~/Documents/da-cli
 ./install.sh                           # copies da + the dacli package to ~/.local/share/da-cli/ and symlinks ~/.local/bin/da → that copy
 ```
 
-**Option B — pip install** — *not yet available; da-cli is not published to
-PyPI. Use Option A.* When it is published, this will work:
+**Option B — pip install.** Not available: **da-cli is not published to
+PyPI**, and the name is currently unregistered. Use Option A.
 
-```bash
-pipx install da-cli                    # or: pip install da-cli
-da --version
-```
+Do not `pip install da-cli` on the strength of this README. Until the name
+appears here as published, anything under it on PyPI is not this project —
+and since this package installs a `da` command onto your `PATH` and handles
+DeviantArt OAuth tokens, installing an impostor is not a harmless mistake.
+
+Note also that `dacli` (no hyphen) on PyPI is an unrelated project.
 
 Python 3.10+ required (uses `argparse.BooleanOptionalAction` and `X | None` syntax). No third-party runtime dependencies.
 
