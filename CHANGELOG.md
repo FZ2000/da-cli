@@ -39,7 +39,7 @@ along with the first tag.
   `skipping: another "da sync" is already running` and exits 0.
   Cron+manual overlap is now safe — no double-walks of the same
   feed page, no state.json races.
-  - New `_cmd_lock(name)` context manager and `CommandLocked`
+  - New `_cmd_lock(name)` context manager and `CommandLockedError`
     exception. Distinct names ("sync", "bench", etc.) don't conflict.
   - 5 tests in `TestCommandLock` (test_integration.py) cover
     acquire/release, recursive-acquire-rejected, distinct-name
@@ -89,7 +89,7 @@ along with the first tag.
   extracted from the URL and exchanged for tokens. Force the flow
   on a loopback URI with the new `--paste` flag.
 - **`tests/test_faults.py`** — comprehensive fault-injection suite
-  (25 tests). Covers retryable HTTP errors (5xx + network/timeout),
+  (44 tests). Covers retryable HTTP errors (5xx + network/timeout),
   permanent HTTP errors (4xx fail-fast, 429 caller-policy),
   exponential-backoff verification, malformed responses
   (invalid/empty JSON), image-download retry symmetry, and
@@ -132,7 +132,7 @@ along with the first tag.
   `AuthError` / `HttpError` / `SyncError` subclasses +
   `CommandLockedError` re-parented under `DacliError`. Wrappers can
   now `except dacli.AuthError` instead of parsing exit codes.
-- **`__all__`** declared (50+ entries) — the public surface is now
+- **`__all__`** declared (45 entries) — the public surface is now
   machine-declared; SLF001 lint catches `_private` leaks.
 - **`mature_content_param()`** helper replaces 11 inline copies of
   `'true' if X.mature else 'false'`.
@@ -307,7 +307,7 @@ along with the first tag.
   `deviationid` suffix instead of overwriting.
 - Comprehensive test suite (158 tests, 90%+ coverage) under `tests/`.
 - Strict `ruff` + `mypy` configuration in `pyproject.toml`.
-- Documentation: `README.md`, `docs/security.md`, this changelog,
+- Documentation: `README.md`, `docs/explanation/security.md`, this changelog,
   `CONTRIBUTING.md`.
 - CI workflow at `.github/workflows/ci.yml` for GitHub Actions.
 

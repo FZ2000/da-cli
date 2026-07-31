@@ -51,11 +51,12 @@ You need `da index rebuild` when per-row self-healing is not enough:
   now points somewhere that no longer exists, and the early stop is
   defeated until each row has been visited. A rebuild fixes the whole
   index in one pass, without re-downloading anything.
-- An image was truncated to zero bytes by something outside `da`. Sync
-  still counts that folder as complete, because the membership test
-  looks for a finished file rather than a non-empty one, so the item is
-  never repaired. A rebuild drops the row and the next sync fetches the
-  image again.
+- An image was truncated to zero bytes by something outside `da`. The
+  next sync repairs this by itself — the membership test requires a
+  non-`.part` image with a non-zero size, so a 0-byte file (and a
+  dangling symlink) reads as not-synced and is re-fetched. A rebuild is
+  only needed if you want the index row corrected immediately rather
+  than on the next walk.
 - You already have a gallery that `da` did not download, and want it
   indexed without waiting for a sync to walk it.
 - The index file is corrupt. Delete it first — see the exit codes under
@@ -193,33 +194,34 @@ Reading the destination requires it to be configured, so
 see [configuration](../reference/configuration.md). It does not need
 credentials and makes no network calls.
 
-Because dropping every row is destructive, the rebuild refuses to run
-when the destination looks absent, and it is worth knowing exactly
-where that line falls, because it is not where you might expect:
+Because dropping every row is destructive, the rebuild refuses to empty
+the index when the destination looks absent. The rule is simple: **it
+will not replace a populated index with nothing.**
 
-- If the **parent** of the destination is missing — the usual shape of
-  an unmounted external drive, where `/Volumes/Archive` disappears and
-  takes `/Volumes/Archive/deviantart` with it — the command stops
-  before touching the index with
-  `[error] parent of destination does not exist: ...` and exits `2`.
-  The index is left exactly as it was.
-- If the parent exists but the destination itself does not, the
-  destination is **created empty** and then walked, which finds nothing
-  and empties the index. This is what happens when the destination
-  is itself the mount point (`destination = /Volumes/Archive`) and the
-  volume is not mounted: `/Volumes` exists, so an empty `Archive`
-  directory is created in its place and the rebuild reports
-  `done: 0 deviations indexed`.
+`da index rebuild` resolves the destination without creating it — that
+is the whole point of the `create=False` path — so an unmounted drive
+never gets an empty directory written in its place. What happens next
+depends on whether the index already has rows:
 
-The guard inside `index_rebuild_from_disk` that returns early on a
-missing destination is therefore unreachable through this command,
-because the destination is created before the walk begins. If your
-destination is on removable storage, point it at a directory *inside*
-the mount point rather than at the mount point itself, and confirm the
-drive is mounted before rebuilding. Losing the index is recoverable —
-nothing on disk is deleted, and a rebuild with the drive mounted
-restores every row — but the sync that runs in between will re-walk
-galleries it did not need to.
+- **Index populated, destination missing or empty.** The command stops
+  and leaves the index alone, exiting `2`:
+
+  ```text
+  [error] found no synced deviations under /Volumes/Archive, so the index
+  was left untouched (15699 rows). If that is an external drive, mount it
+  and retry; to wipe deliberately, delete ~/.local/state/da-cli/index.db.
+  ```
+
+- **Index already empty, destination missing.** Nothing to lose, so it
+  reports `done: 0 deviations indexed` and exits `0`. This is also what a
+  missing *parent* directory produces — there is no separate
+  parent-directory error on this path.
+
+So the guard inside `index_rebuild_from_disk` is not a fallback, it is
+the mechanism. Losing the index would be recoverable anyway — nothing on
+disk is deleted, and a rebuild with the drive mounted restores every row
+— but the sync that ran in between would re-walk galleries it did not
+need to, which is what the guard exists to prevent.
 
 It takes no lock, so it can run while a sync is in progress. Rows for
 items saved during the walk may be dropped, but they are not lost work:
@@ -254,9 +256,10 @@ stale.
 
 ### Exit codes
 
-`0` on success, including a rebuild that indexes nothing. `2` when the
-destination is not configured, or when its parent directory does not
-exist:
+`0` on success, including a rebuild that legitimately indexes nothing
+because the index was already empty. `2` when the destination is not
+configured, and `2` when the walk finds nothing while the index still
+holds rows — the refuse-to-wipe case above:
 
 ```console
 $ da index rebuild
@@ -319,11 +322,10 @@ On Linux, or anywhere without `launchctl`, the section is absent
 entirely and a broken cron entry is not detected.
 
 The destination path is expanded first, so a `~/…` destination is
-checked as the directory you meant. The two free-space thresholds are
-written as literals in `dacli/commands/diagnose.py`; the
-`DEST_FREE_SPACE_WARN_GIB` and `DEST_FREE_SPACE_FAIL_GIB` constants
-hold the same values but are not what the check reads, so editing them
-alone changes nothing.
+checked as the directory you meant. The two free-space thresholds come
+from `DEST_FREE_SPACE_WARN_GIB` and `DEST_FREE_SPACE_FAIL_GIB` in
+`dacli/constants.py` — the check imports and compares against them, so
+editing the constants is all that is needed to move the thresholds.
 
 The `auth` section is the one with real behaviour behind it. When the
 access token is still valid the check is local and reports the minutes
@@ -367,10 +369,10 @@ certificate; a missing index is reported, not fixed.
 
 The report header timestamp is local time, while the `timestamp` field
 in `--json` is UTC with a `Z` suffix — the same run produces two
-different-looking times. JSON is written with ASCII escapes, so the em
-dashes inside messages arrive as `\u2014` rather than as the character
-itself; key on `level` and `section` rather than matching message
-text. Findings always appear in the order above, but do not index into
+different-looking times. JSON is written with `ensure_ascii=False`, so
+an em dash arrives as the character itself rather than as `\u2014` —
+but key on `level` and `section` rather than matching message text
+either way, because the wording is not a stable interface. Findings always appear in the order above, but do not index into
 the array by position: the conditional sections and the branchy `auth`
 checks change its length.
 

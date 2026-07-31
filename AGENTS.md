@@ -383,7 +383,7 @@ verification state, not the API token. After verifying:
 | `whoami` warns about 403 | Token lacks `user` scope | Re-run `da auth --scope "browse user"` |
 | `watch list` exits with "needs user scope" | Same | Same |
 | `gallery/all` returns empty for known artist | DA fallback returned the calling user's profile, not a 404 | Verify spelling via `da search user <name>`. DA usernames are case-sensitive sometimes. |
-| Image saved as 0 bytes / wrong type | CDN returned an HTML 401 page rather than the image | Token expired mid-run; refresh and re-run. Existing 0-byte files won't be re-fetched until deleted. |
+| Image saved as 0 bytes / wrong type | CDN returned an HTML 401 page rather than the image | Token expired mid-run; refresh and re-run. A 0-byte file is treated as not-synced, so the next run re-fetches it without any manual deletion. |
 | Hits HTTP 429 mid-feed-walk | DA rate limit | The walk stops cleanly with `stop_reason="HTTP 429 at offset N"`. Wait, retry; consider `--jitter 0.4`. |
 
 ## Security model (short version)
@@ -435,11 +435,12 @@ parser→handler→HTTP path. Then confirm:
 ruff check . && ruff format --check . && mypy dacli && pytest -q
 ```
 
-Coverage gate: ≥92 % on the `dacli` package (currently 92.6 %).
-CI matrix: Python 3.10–3.14, on Linux. CI runs nine jobs in
-parallel: `lint`, `test`, `integration`, `smoke`, `secret-scan`,
-`verified-secret-scan`, `codespell`, `network-anonymous`, and the
-weekly `pip-audit`.
+Coverage gate: ≥92 % on the `dacli` package (currently 94 %).
+CI matrix: Python 3.10–3.14, on Linux. `.github/workflows/ci.yml`
+defines 16 jobs: `lint`, `test`, `integration`, `smoke`, `artifact`, `secret-scan`, `verified-secret-scan`, `codespell`, `pip-audit`, `markdownlint`, `link-check`, `link-check-external`, `cassette-replay`, `network-anonymous`, `discoverability` — plus `ci-gate`, which aggregates
+the rest so branch protection has one check to require instead of a
+matrix's worth of names. Two more workflows, `codeql.yml` and
+`dependency-review.yml`, activate when the repository is public.
 
 ## Versioning & changelog
 

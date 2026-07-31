@@ -4,7 +4,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-261230.svg)](https://docs.astral.sh/ruff/)
-[![Type checked: mypy strict](https://img.shields.io/badge/types-mypy%20strict-blue.svg)](http://mypy-lang.org/)
+[![Type checked: mypy](https://img.shields.io/badge/types-mypy-blue.svg)](https://mypy-lang.org/)
 [![Coverage: 92%+](https://img.shields.io/badge/coverage-92%25%2B-brightgreen.svg)](CONTRIBUTING.md#tests)
 [![Status: Beta](https://img.shields.io/badge/status-beta-orange.svg)](https://github.com/FZ2000/da-cli/releases)
 [![Dependencies: 0 runtime](https://img.shields.io/badge/runtime%20deps-0-success.svg)](pyproject.toml)

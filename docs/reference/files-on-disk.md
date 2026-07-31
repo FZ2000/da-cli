@@ -47,10 +47,11 @@ the "already fetched" check would mistake for a complete file.
 | --- | --- | --- |
 | `~/.config/da-cli/config.json` | 0600 | Non-secret settings: `client_id`, `destination`, `redirect_uri`, pacing. |
 | `~/.local/state/da-cli/state.json` | 0600 | Access and refresh tokens, sync checkpoints, and per-artist gallery progress so an interrupted backfill resumes. Rewritten atomically on every refresh. |
-| `~/.local/state/da-cli/index.db` | 0644 | SQLite index of what has been downloaded. |
+| `~/.local/state/da-cli/index.db` | 0600 | SQLite index of what has been downloaded. |
 | `~/.local/state/da-cli/loopback-cert.pem` | 0600 | Self-signed certificate for the `da auth` callback listener. |
 | `~/.local/state/da-cli/loopback-key.pem` | 0600 | Its private key. |
-| `~/.local/state/da-cli/.sync.lock` | 0644 | Advisory lock preventing two syncs at once. |
+| `~/.local/state/da-cli/.sync.lock` | 0600 | Advisory lock preventing two syncs at once. |
+| `~/.local/state/da-cli/.token.lock` | 0600 | Advisory lock serialising refresh-token rotation across processes. |
 
 On macOS the `client_secret` is stored in the Keychain instead of in
 `config.json`. Elsewhere it falls back to `config.json` at mode 0600,
