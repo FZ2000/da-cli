@@ -47,7 +47,7 @@ Makefile text eol=lf
 .git-blame-ignore-revs export-ignore
 .editorconfig export-ignore
 Makefile export-ignore
-renovate.json export-ignore
+renovate.json5 export-ignore
 tests/ export-ignore
 examples/ export-ignore
 tools/ export-ignore
