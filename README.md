@@ -60,7 +60,8 @@ da deviation show <deviationid>         # full metadata for one deviation
 da deviation morelikethis <id>          # related deviations via DA's recommender
 da watch list                           # show who you watch (needs `user` scope)
 
-da config show | path                   # inspect config + paths
+da config show                          # inspect config + resolved paths
+da config path                          # just the file locations
 da config set <key> <value>             # store; secrets go to Keychain on macOS
 da config get <key> [--unmask]          # read back (secrets masked unless --unmask)
 da config unset <key>                   # remove

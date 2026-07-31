@@ -66,7 +66,9 @@ Test conventions:
   `test_conftest.py`.
 - Integration tests (live DA) live under `tests/integration/`; see
   [tests/integration/README.md](tests/integration/README.md) for setup. They are excluded from the
-  default `pytest` run via `--ignore=tests/integration`.
+  default `pytest` run by `tests/integration/conftest.py`, which adds a
+  skip marker unless `-m integration` is passed — so they appear as
+  skipped rather than being collected and failing.
 - Fixtures live in `tests/conftest.py`. The `isolated_paths` fixture
   monkeypatches `dacli.CONFIG_PATH` / `STATE_PATH` to a `tmp_path`
   directory so tests never touch the real config.

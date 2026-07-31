@@ -40,7 +40,7 @@ token carries.
 
 | Flag | Type | Default | What it does |
 | --- | --- | --- | --- |
-| `--redirect-uri REDIRECT_URI` | string | the configured `redirect_uri` (`DA_REDIRECT_URI` beats `config.json`), and `https://localhost:8765/` when neither is set | The URI DeviantArt redirects to after you click Authorize. A loopback host (`localhost`, `127.0.0.1`, `::1`) runs a local listener; anything else switches to paste mode automatically. |
+| `--redirect-uri REDIRECT_URI` | string | the configured `redirect_uri` (`DA_REDIRECT_URI` beats `config.json`), and `https://localhost:8765/` when neither is set | The URI DeviantArt redirects to after you click Authorize. A loopback host (`localhost` or `127.0.0.1`) runs a local listener; anything else — including `::1`, deliberately — switches to paste mode automatically. |
 | `--paste` | flag | off | Force paste mode even for a loopback URI. |
 | `--scope SCOPE` | string | `browse` | Space-separated OAuth scopes to request. `browse` covers galleries, feeds and search; add `user` for identity and watch-list enumeration. |
 | `-h`, `--help` | flag | — | Print the usage above and exit. |
@@ -76,7 +76,7 @@ read from.
 
 ### The loopback listener and why it speaks HTTPS
 
-When the redirect URI's host is `localhost`, `127.0.0.1` or `::1`, and
+When the redirect URI's host is `localhost` or `127.0.0.1`, and
 you have not passed `--paste`, `da` binds a one-shot HTTP server on
 `127.0.0.1` at the URI's port (8765 if the URI names none) and waits for
 the browser to deliver the authorisation code to it. The listener is

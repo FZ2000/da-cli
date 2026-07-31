@@ -13,7 +13,9 @@ branch only.
 ## Reporting a vulnerability
 
 **Do not file a public issue for security problems.** Instead, open a private
-security advisory on the repo (Settings → Security → Advisories).
+security advisory on the repo: go to the **Security** tab and choose
+"Report a vulnerability". (Reporters do not have a Settings tab — that
+path only exists for maintainers.)
 
 Please include:
 

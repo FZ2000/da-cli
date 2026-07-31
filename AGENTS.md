@@ -186,7 +186,7 @@ da refresh                                                # force-refresh access
 - `--redirect-uri` overrides the default `https://localhost:8765/`.
   Must match the whitelisted URI on the OAuth app **byte-exactly**.
 - The CLI auto-detects loopback vs. paste-back:
-  - **Loopback** (`localhost`, `127.0.0.1`, `::1`): binds a local TLS
+  - **Loopback** (`localhost`, `127.0.0.1` — NOT `::1`): binds a local TLS
     listener using a self-signed cert (generated on first run via
     `openssl req -x509`, stored at `~/.local/state/da-cli/loopback-{cert,key}.pem`).
     Browser shows a one-time "connection not private" warning the
@@ -221,7 +221,9 @@ Settable keys: `client_id`, `client_secret` (secret), `destination`,
 
 ### Sync
 
-The three sync commands share a common option set:
+The three sync commands share most of an option set. `sync watched` is
+the exception: it has no `--limit` and no `--offset`, because it walks
+each artist at the page cap and lets each resume its own position.
 
 | Flag | Type | Default | Notes |
 |---|---|---|---|
@@ -230,7 +232,7 @@ The three sync commands share a common option set:
 | `--delay-api SEC` | float | 5.0 | Sleep between API calls (between pages, between metadata batches). |
 | `--delay-image SEC` | float | 1.5 | Sleep between image downloads. |
 | `--jitter PCT` | float (0–0.95) | 0 | Multiply each sleep by `uniform(1-PCT, 1+PCT)`. `0.4` makes a 1.5s base 0.9–2.1s. Floor 0.05s. |
-| `--limit N` | int | 24 | Page size. CLI clamps to DA's per-endpoint cap. |
+| `--limit N` | int | 24 | Page size. CLI clamps to DA's per-endpoint cap (24 gallery, 50 feed). **`sync feed` and `sync artist` only** — `sync watched` does not take it. |
 
 ```bash
 # Incremental walk of /browse/deviantsyouwatch, top-down. Stops at
@@ -409,7 +411,7 @@ these are the load-bearing functions in the package:
 | `cmd_*` (e.g. `cmd_sync_feed`) | argparse handlers. Each has a single `args: argparse.Namespace` argument. |
 | `build_parser()` | full argparse tree. Add new subcommands here + a `cmd_*` handler. |
 | `access_token(cfg, state)` | returns a valid bearer; refreshes if expired; writes new state. |
-| `http_json` / `http_post_json` / `http_bytes` | the only HTTP entry points. All retry with backoff and respect 429. `http_post_json` accepts an optional `token=` for endpoints that need Bearer auth on POST (used internally; `cmd_search_user` builds its own raw POST because `/user/whois` needs the repeated `usernames[]=` form shape that `urlencode` doesn't produce). |
+| `http_json` / `http_post_json` / `http_bytes` | the only HTTP entry points. All retry with backoff and respect 429. `http_post_json` accepts an optional `token=` for endpoints that need Bearer auth on POST — `cmd_search_user` uses it for `/user/whois`, passing a list value so `urlencode(..., doseq=True)` produces the repeated `usernames[]=` shape. It used to hand-build that request, which cost it retries, `-v` logging, and visibility to every test that stubs the HTTP layer. |
 | `_save_one(d, md_by_id, dest, ...)` | the actual deviation→folder writer. Returns `(status, artist, title, size)`. Consults the index first (O(1) lookup); on miss, downloads and adds to index. |
 | `_resolve_folder` | dedup-aware folder picker; handles title collisions. |
 | `_keychain_get` / `_keychain_set` | macOS Keychain helpers; safe no-ops on Linux. |

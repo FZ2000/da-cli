@@ -19,7 +19,7 @@ Listed roughly bottom-up: each depends only on the ones above it.
 | Module | Holds |
 |---|---|
 | `constants.py` | Paths and every tunable — timeouts, delays, page caps, token TTLs. |
-| `errors.py` | The exception hierarchy (`DacliError` and its five subclasses). |
+| `errors.py` | The exception hierarchy: `DacliError` and four subclasses (`ConfigError`, `AuthError`, `HttpError`, `SyncError`). A fifth, `CommandLockedError`, lives in `lock.py` beside the lock it reports on. |
 | `output.py` | `log()`, colour state, and the pure helpers: `safe_filename`, `mask_secret`, `_atomic_write`. |
 | `config.py` | `config.json`, `state.json`, and secret storage (macOS Keychain, 0600 file elsewhere). |
 | `lock.py` | The cross-process flock and the last-sync summary it guards. |
@@ -27,7 +27,8 @@ Listed roughly bottom-up: each depends only on the ones above it.
 | `net.py` | Every outbound request: `http_json`, `http_post_json`, `http_bytes`, retry and backoff. |
 | `auth.py` | OAuth 2.1 with PKCE — the loopback listener, token refresh, `whoami`. |
 | `sync.py` | The sync engine: pagination, early-stop, atomic saves, the thread pool. |
-| `__init__.py` | Command handlers, argparse wiring, and the re-export surface. |
+| `__init__.py` | argparse wiring, `main()` and its error-advice handlers, and the re-export surface. No command handlers: they live in `auth.py`, `sync.py` and `commands/`. |
+| `commands/` | The remaining handlers, one module per area: `config.py`, `search.py`, `user.py`, `index.py`, `diagnose.py`, `bench.py`. |
 
 Named `net.py` rather than `http.py` deliberately: a submodule named
 after a stdlib module the package imports would shadow it. See ADR 0007;
@@ -55,14 +56,15 @@ suite would use the live API and your real config while still passing.
 
 ## Data model
 
-Three on-disk artefacts, all under the user's home:
+Six on-disk artefacts, all under the user's home:
 
 ```text
 ~/.config/da-cli/config.json        (mode 0600)  non-secret settings
 ~/.local/state/da-cli/state.json    (mode 0600)  tokens + sync checkpoints
 ~/.local/state/da-cli/index.db      (mode 0600)  SQLite synced-deviation index
 ~/.local/state/da-cli/loopback-*.pem(mode 0600)  self-signed TLS cert for OAuth loopback
-~/.local/state/da-cli/.sync.lock    (advisory)   cross-process flock sentinel
+~/.local/state/da-cli/.sync.lock    (mode 0600)  cross-process flock sentinel, one sync at a time
+~/.local/state/da-cli/.token.lock   (mode 0600)  serialises refresh-token rotation
 ```
 
 The synced index (`index.db`) is the load-bearing state for incremental

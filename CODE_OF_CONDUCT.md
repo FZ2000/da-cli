@@ -60,7 +60,7 @@ representative at an online or offline event.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the maintainer privately via the repository's security-advisory
-form (Settings → Security → Advisories), which is visible only to the
+form (Security tab → "Report a vulnerability"), which is visible only to the
 maintainer. All complaints will be reviewed and
 investigated promptly and fairly.
 
