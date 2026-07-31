@@ -1,0 +1,75 @@
+{
+  // JSON5 rather than JSON so this file can explain itself. Renovate reads
+  // renovate.json5 natively; plain JSON has no comment syntax, and the
+  // `_comment` key workaround trips Renovate's unknown-option validation.
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+
+  extends: ["config:recommended", "helpers:pinGitHubActionDigests"],
+  schedule: ["before 6am on Monday"],
+  labels: ["dependencies"],
+  commitMessagePrefix: "chore(deps)",
+  commitMessageTopic: "{{depName}}",
+  prConcurrentLimit: 5,
+  prHourlyLimit: 2,
+  rangeStrategy: "bump",
+  configMigration: true,
+
+  // Off by default, so the five hook revs in .pre-commit-config.yaml would
+  // never be bumped without this.
+  "pre-commit": { enabled: true },
+
+  customManagers: [
+    {
+      // CI curl-downloads three tools from GitHub releases and runs one via
+      // npx. None is visible to a built-in manager, so without these they
+      // stay pinned forever.
+      //
+      // depName is CAPTURED from the URL, never templated to a literal. An
+      // earlier version of this file set depNameTemplate to the invented
+      // name "ci-pinned-tools", and Renovate reported exactly that:
+      //   Failed to look up github-releases package ci-pinned-tools: no-result
+      // A datasource lookup needs a real package name.
+      customType: "regex",
+      managerFilePatterns: ["/^\\.github/workflows/[^/]+\\.ya?ml$/"],
+      matchStrings: [
+        "https://github\\.com/(?<depName>[^/\"]+/[^/\"]+)/releases/download/v(?<currentValue>[0-9]+\\.[0-9]+\\.[0-9]+)/",
+      ],
+      datasourceTemplate: "github-releases",
+      versioningTemplate: "semver",
+    },
+    {
+      // lychee tags its releases `lychee-vX.Y.Z`, not `vX.Y.Z`, so it needs
+      // its own matchString and an extractVersion to recover the bare
+      // version from the tag name.
+      customType: "regex",
+      managerFilePatterns: ["/^\\.github/workflows/[^/]+\\.ya?ml$/"],
+      matchStrings: [
+        "https://github\\.com/(?<depName>lycheeverse/lychee)/releases/download/lychee-v(?<currentValue>[0-9]+\\.[0-9]+\\.[0-9]+)/",
+      ],
+      datasourceTemplate: "github-releases",
+      extractVersionTemplate: "^lychee-v(?<version>.+)$",
+      versioningTemplate: "semver",
+    },
+    {
+      // markdownlint-cli arrives via npx, so it is an npm package. The
+      // previous config asked the github-releases datasource for it, which
+      // could never have resolved.
+      customType: "regex",
+      managerFilePatterns: ["/^\\.github/workflows/[^/]+\\.ya?ml$/"],
+      matchStrings: ["(?<depName>markdownlint-cli)@(?<currentValue>[0-9]+\\.[0-9]+\\.[0-9]+)"],
+      datasourceTemplate: "npm",
+      versioningTemplate: "semver",
+    },
+  ],
+
+  packageRules: [
+    {
+      groupName: "python dev tooling",
+      matchManagers: ["pep621"],
+      matchPackageNames: ["/^(ruff|mypy|pytest|pytest-cov)$/"],
+    },
+    { groupName: "CI actions", matchManagers: ["github-actions"], matchPackageNames: ["actions/**"] },
+    { groupName: "pre-commit hooks", matchManagers: ["pre-commit"] },
+    { groupName: "CI pinned tools", matchManagers: ["custom.regex"] },
+  ],
+}
