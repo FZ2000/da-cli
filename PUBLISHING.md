@@ -8,30 +8,43 @@ This file exists because several things in this repo are deliberately
 configured for the private state and would be wrong, or silently useless,
 once it is public. Each one is listed with what breaks if it is missed.
 
-## Blocking — do these before flipping to public
+## The sequence
 
-### 1. Rotate the DeviantArt client secret
+Ordered, because three of these only work in one direction.
 
-**Status: not done. This is the hard blocker.**
+1. **Flip to public.** Settings → General → Danger Zone → Change
+   visibility. Everything below becomes possible at this point and not
+   before.
+2. **Enable the security features** (all free on a public repo, all
+   refused on a private one — the API returns 422 / 404):
+   Settings → Code security → turn on **secret scanning**, **push
+   protection**, and **private vulnerability reporting**. The third one
+   is what makes `SECURITY.md`'s "Report a vulnerability" link work
+   rather than 404.
+3. **Apply branch protection**: `./tools/apply_branch_protection.sh`.
+   One command. It requires `ci-gate` and sets
+   `strict_required_status_checks_policy`, i.e. "branch must be up to
+   date before merging".
+4. **Delete the `lychee.toml` self-link exclusion** (see below) and open
+   a PR for it. Leaving it hides genuinely dead self-links.
+5. **Verify the two gated workflows ran**: Actions → CodeQL should show
+   a green run for both `python` and `actions`; Security → Code scanning
+   should be populated (empty is fine, "not enabled" is not).
 
-Rotate the app credential at <https://www.deviantart.com/developers/apps>,
-then `da config set client_secret <new>`.
+Optional, any time after:
 
-Why, without the detail: the credential currently configured locally was
-exposed outside this repository during earlier development and must be
-treated as compromised. This repo does not contain it — the history is
-fresh, the tree scans clean, and `.gitleaksignore` is empty — so publishing
-*this* repo does not disclose it. But "the new repo is clean" and "the
-secret is safe" are different claims, and only the second one matters.
+6. **Social preview image** — Settings → General → Social preview.
+   1280×640 PNG under 1 MB. Without one, link unfurls on X, Slack,
+   Discord and LinkedIn use GitHub's auto-generated card.
+7. **Cut a release.** See CONTRIBUTING.md §Releases. Note the ordering
+   trap recorded there: tag first, *then* add the CHANGELOG link
+   definitions. The file previously carried four such links for tags that
+   were never created, and CI could not catch it because the link check
+   runs `--offline`.
 
-The specifics of which credential and how it was exposed are deliberately
-not written down here. This file ships in the repository and is not
-export-ignored, so anything in it is public the moment the repo is — and a
-file that names an app whose secret is known-leaked-and-unrotated is a
-usable tip, not a checklist item. Keep that detail in your notes, not in
-git.
+## Before flipping to public
 
-### 2. Confirm nothing in this tree is private
+### 1. Confirm nothing in this tree is private
 
 Two scans, because they answer different questions:
 
@@ -40,28 +53,34 @@ gitleaks detect --no-git --redact          # the tree as it will be published
 gitleaks git   --redact --exit-code 1 .    # the committed history
 ```
 
-Both should report no leaks. Also worth a human pass for things a scanner
-cannot recognise: internal hostnames, absolute paths containing your username,
-personal email addresses in `CITATION.cff` / `pyproject.toml` / commit
-metadata, and screenshots with a window title or sidebar that shows more than
-you meant.
+Both should report no leaks. This repository was created as a fresh
+history rather than a filtered clone of the repo it was developed in —
+the tracked files were copied and committed once — specifically so that
+the development history, which contained a credential, is not present to
+be scanned in the first place. Verified: the value appears in none of the
+objects here, and the commit that introduced it does not exist in this
+repository.
 
-The previous forge's private hostname has been removed from all 13 files
-that carried it, including the runtime `USER_AGENT` in `dacli/constants.py`
-— that one was sending it to DeviantArt on every request.
+Worth a human pass for the things a scanner cannot recognise: internal
+hostnames, absolute paths containing your username, personal email
+addresses in `CITATION.cff` / `pyproject.toml` / commit metadata, and
+screenshots showing a window title or sidebar you did not intend.
 
-### 3. Set the repository About panel
+`tools/check_discoverability.py` asserts the mechanical half of this on
+every CI run — no private-host URL in any tracked file, no `/Users/<name>/`
+paths outside the `you` placeholder.
 
-Not cosmetic: the description is what GitHub puts in the page's `og:description`
-and what search engines show as the snippet. An empty About panel means the
-snippet gets scraped from whatever text happens to be near the top of the
-README.
+### 2. Check the About panel
 
-- **Description**: already set on the repo, and mirrored in
-  `pyproject.toml`'s `description` so PyPI and GitHub agree.
-- **Topics**: set them. GitHub allows up to 20; they drive GitHub's own
-  search and appear in the page markup.
-- **Website**: leave blank until GitHub Pages is live, then point it there.
+Already set, and worth knowing why it matters: GitHub injects the
+description verbatim into the page `<title>`, `<meta name="description">`,
+and every `og:`/`twitter:` tag, and its default repository search matches
+**only** name, description and topics — not the README. Those two fields
+are the entire discovery surface.
+
+- **Description** — set, and mirrored in `pyproject.toml` so PyPI agrees.
+- **Topics** — 20 set, the documented maximum.
+- **Website** — leave blank until GitHub Pages is live, then point it there.
 
 ## Activates automatically on publication — verify, do not edit
 
