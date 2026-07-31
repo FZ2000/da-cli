@@ -37,11 +37,12 @@ Beyond that:
   or write the destination folder or the SQLite index.
 - They take no lock, so they are safe to run while a `da sync` is in
   progress — the sync lock is held by sync commands only.
-- The only failures they handle are the ones documented in each section
-  below. Any other non-2xx response from DeviantArt propagates as an
-  unhandled `urllib.error.HTTPError`: a Python traceback and exit
-  status `1`, not the usual `2`. A 5xx or a network error is retried
-  twice before that happens (`HTTP_RETRY_DEFAULT = 2` in
+- The only failures they handle *themselves* are the ones documented in
+  each section below. Any other non-2xx response from DeviantArt reaches
+  `main()`'s backstop handler, which prints one line naming the status and
+  exits `2` — the usual code, not a traceback. `-v` shows the traceback,
+  which is written at debug level. A 5xx or a network error is retried
+  twice before any of that (`HTTP_RETRY_DEFAULT = 2` in
   `dacli/constants.py`); 4xx responses are never retried.
 
 ## `da user profile`
@@ -86,9 +87,9 @@ on this command, so those six fields are the whole interface to it.
 Nothing is cached: each run is a fresh API call.
 
 There is no "not found" handling either. A username DeviantArt rejects
-fails the request and surfaces as a traceback with exit `1`; a response
-carrying no `user` object prints the labels with `None` values rather
-than erroring.
+fails the request and surfaces as a one-line error with exit `2`; a
+response carrying no `user` object prints the labels with `None` values
+rather than erroring.
 
 ### Example
 
@@ -169,8 +170,8 @@ is only worth it if you want to reshape it.
 Exits `2`, with `[error] no metadata for deviationid <id>` on stderr,
 when the response contains no metadata entry for the id you asked
 about. That is the empty-result path, not the bad-id path: an id
-DeviantArt rejects outright fails the request instead, with a traceback
-and exit `1`.
+DeviantArt rejects outright fails the request instead — also exit `2`,
+but with the HTTP status in the message rather than the id.
 
 ## `da deviation morelikethis`
 
@@ -250,7 +251,7 @@ that needs more than the default token scope.
 
 Neither number is validated or clamped by the CLI, so whatever limits
 DeviantArt enforces on the endpoint are the ones that apply, and a
-rejected value comes back as a traceback with exit `1`.
+rejected value comes back as a one-line error with exit `2`.
 
 ### Behaviour
 

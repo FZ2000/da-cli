@@ -198,10 +198,13 @@ corrupt index, or a 401 that survives a forced token refresh. `0` — with
 a `skipping:` message — when another sync already holds the lock.
 
 One deviation from the norm: an unexpected HTTP status from the feed
-endpoint (anything that is not 429 or a retried 5xx) is **not** caught.
-It escapes as a Python traceback and the process exits `1`, not `2`.
-`sync artist` handles the same situation differently, which is worth
-knowing before you write a wrapper script around either.
+endpoint (anything that is not 429 or a retried 5xx) is not handled
+inside the walk. It reaches `main()`'s backstop handler, which prints a
+one-line explanation and exits `2` — the same code the rest of the CLI
+uses for "could not do the job". No traceback, unless you pass `-v`.
+`sync artist` handles the same situation inside the walk instead,
+recording a stop reason; the difference matters if you parse the summary
+line, not if you branch on the exit code.
 
 ## da sync artist
 
@@ -255,21 +258,25 @@ Two details make the early stop safe rather than merely fast:
 - Known ids are filtered out before the metadata batch, so a page that
   is 23/24 duplicates costs one metadata call for one deviation.
 
-What the early stop does **not** do is compensate for a walk that
-stopped part-way down. There is no per-artist "how far did I get" marker
-in `state.json`; the index is the only memory, and it says nothing about
-order. So if a run is truncated by its time budget at offset 96, the
-newest four pages are indexed and everything older is not — and the next
-plain run reads page 0, finds it entirely known, reports `caught up` and
-stops without ever requesting offset 96 again. Resuming is manual, which
-is why the summary is followed by a
-`resume: da sync artist <name> --offset <n>` line whenever the walk
-stopped for a non-terminal reason.
+A walk that stops part-way down **is** resumed automatically. The
+per-artist position is recorded in `state.json` under
+`galleries.<artist>`, so if a run is truncated by its time budget at
+offset 96, the next plain run starts there rather than at page 0:
 
-The same offset is recorded in `state.json` as `last_sync.last_offset`
-(only for non-terminal stops, so `gallery complete` and `caught up` do
-not record one). Re-run with that `--offset`, or with `--full`, or the
-rest of the gallery stays unsynced.
+```text
+resuming alice at offset 96 (previous walk did not finish)
+```
+
+That marker is also what stops the early "everything on this page is
+known" exit from stranding the rest of the gallery — the early stop is
+gated on the artist being recorded as complete, so a truncated walk
+keeps going instead of reporting `caught up` at page 0.
+
+`--offset` still overrides it when you pass one explicitly, and `--full`
+still ignores it and walks from the top. The summary's
+`resume: da sync artist <name> --offset <n>` line is a convenience for
+running the rest immediately; you do not need it for the next scheduled
+run to make progress.
 
 **`--full`** disables the early stop only. It walks every page to the
 end of the gallery but still skips anything the index already knows, so
@@ -408,8 +415,12 @@ daily job; `sync feed` is.
 | `--concurrency CONCURRENCY` | int | config `concurrency`, else `4` | Passed to each artist walk, clamped to 1–16. |
 | `--dry-run` | flag | off | Passed to each artist walk. Nothing is written and the index is untouched, but every gallery is still paged and metadata is still fetched. |
 
-There is no `--limit` and no `--offset`. Each artist is walked with
-`--limit 24` and `--offset 0`, always.
+There is no `--limit` and no `--offset`. Each artist is walked at the
+gallery page cap, and — deliberately — with no offset supplied, so each
+one resumes its own unfinished walk from the position recorded in
+`state.json`. Passing `0` here would pin every artist to page 0 and
+defeat that, which is precisely the case a backfill across many artists
+needs most.
 
 ### Behaviour
 
@@ -448,10 +459,10 @@ for even one page, so the rest are skipped with a warning reading
 
 Skipped artists are not failures. Re-running picks up where it stopped in
 the useful sense: the artists already walked are all-known, so each costs
-one API call before the walk moves on — but a *truncated* artist, one cut
-off mid-gallery, is not resumed, for exactly the reason described under
-[`sync artist`](#behaviour-1). Its remaining pages need
-`da sync artist <name> --offset N` or `--full`.
+one API call before the walk moves on, and a *truncated* artist — one cut
+off mid-gallery — picks up where it left off, for the reason described
+under [`sync artist`](#behaviour-1). Nothing needs doing by hand; a
+backfill across many artists converges over successive scheduled runs.
 
 **Failure handling.** Each artist runs inside a `try`. An artist that
 exits or crashes is logged, counted as failed, and the run moves on to

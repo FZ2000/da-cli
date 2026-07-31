@@ -20,8 +20,9 @@ da sync feed >> ~/da-sync.log 2>&1
 
 ## Machine-readable output
 
-Eleven commands accept `--json`: every `search` subcommand,
-`deviation show`, `deviation morelikethis`, `diagnose`, and `bench`.
+Thirteen commands accept `--json`: every `search` subcommand (including
+`search user`), `daily`, `deviation show`, `deviation morelikethis`,
+`diagnose`, and `bench`.
 Use it rather than parsing the human-readable form, which is not a
 stable interface.
 

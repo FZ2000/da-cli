@@ -107,13 +107,19 @@ string), `is_mature`, `is_downloadable`, an `author` object
 object (`comments`, `favourites`), and `preview` / `content` / `thumbs`
 image entries whose `src` values are signed CDN URLs.
 
-**Errors.** These commands do not catch HTTP failures. A rejected
-`--limit`, a malformed date or an unauthorised endpoint surfaces as a
-Python traceback ending in a line like
-`urllib.error.HTTPError: HTTP Error 400: Bad Request`, and the process
-exits `1` — not the `2` that the rest of the CLI uses for "could not do
-the job" (see [exit codes](../reference/exit-codes.md)). An empty result
-set is not an error: nothing is printed and the exit code is `0`.
+**Errors.** These commands do not handle HTTP failures themselves; the
+failure reaches `main()`'s backstop handler. A rejected `--limit`, a
+malformed date or an unauthorised endpoint prints one line —
+
+```text
+[error] DeviantArt refused the request (HTTP 400 Bad Request).
+```
+
+— and exits `2`, the same code the rest of the CLI uses for "could not do
+the job" (see [exit codes](../reference/exit-codes.md)). The traceback is
+written at debug level, so `-v` shows it and the default run does not. An
+empty result set is not an error: nothing is printed and the exit code is
+`0`.
 
 **Rate limiting.** Each invocation makes exactly one API request and
 sleeps for nothing, so none of the `--delay-api` / `--jitter` throttling
@@ -403,9 +409,10 @@ not hit a `/browse/` endpoint — it POSTs to `/user/whois`, because that
 endpoint rejects GET with HTTP 400 — and the only one with no `--limit`
 and no `--mature`. The request hardcodes `mature_content=true`, so a
 `--mature` flag would have nothing to do.
-Being a `/user/` endpoint, it needs a token authorised for it; a token
-that is not gets HTTP 401 back, which surfaces as a traceback and exit
-`1` rather than a message.
+Being a `/user/` endpoint, it needs a token authorised for it. A token
+that is not gets HTTP 401 back, which surfaces as
+`[error] DeviantArt rejected the credentials (HTTP 401 Unauthorized)` and
+exit `2`.
 
 Each record DA returns prints as one line: `@` and the username as DA
 spells it, the user's UUID in parentheses, and `type=` followed by the
@@ -444,8 +451,8 @@ however many picks DA made that day — seventeen on
 the day this page was written — and only the human-readable form.
 
 A malformed date is not validated locally. A day-first date such as
-`15-01-2026` is sent to DA as-is, comes back 400, and ends in a
-traceback with exit `1`.
+`15-01-2026` is sent to DA as-is, comes back 400, and ends in a one-line
+error with exit `2`.
 
 ```console
 $ da daily 2026-01-15 | head -5

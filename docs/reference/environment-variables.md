@@ -14,6 +14,7 @@ the full precedence rules.
 | `DA_CLIENT_SECRET` | `client_secret` | your app's secret |
 | `DA_DESTINATION` | `destination` | `~/Pictures/DA` |
 | `DA_REDIRECT_URI` | `redirect_uri` | `https://localhost:8765/` |
+| `DA_JITTER` | `jitter` | `0.4` (±40% on every sleep) |
 
 Setting credentials in the environment is the right choice for CI and
 for containers. On a personal machine prefer `da config set`, which
@@ -24,7 +25,7 @@ or a process listing.
 
 | Variable | Effect |
 | --- | --- |
-| `NO_COLOR` | Set to any value to disable coloured output. Honoured regardless of `--color`, per [no-color.org](https://no-color.org/). |
+| `NO_COLOR` | Set to any value to disable coloured output, per [no-color.org](https://no-color.org/). Consulted only in the default `--color auto` mode; an explicit `--color always` wins, which is what makes it possible to force colour into a pipe. |
 
 Colour is also disabled automatically when output is not a terminal, so
 piping to a file or a log needs no configuration.
@@ -57,7 +58,15 @@ Read by `install_schedule.sh` when it writes the launchd job, not by
 | `DA_MINUTE` | `0` | Minute of the hour (0–59). |
 | `DA_INTERVAL_SECONDS` | *(unset)* | Run every N seconds instead of at a fixed time. Mutually exclusive with `DA_HOUR`/`DA_MINUTE`. |
 | `DA_TIME_BUDGET` | `1200` | Seconds the scheduled sync may run before stopping cleanly. |
-| `DA_JITTER` | `0.4` | Randomise each sleep by ±40%, so the request pattern is not perfectly regular. |
+
+`DA_JITTER` used to be listed here. It is **not** scheduling-only: the
+installer writes it into the launchd job, *and* `da` reads it directly as
+a config override like `DA_CLIENT_ID` and friends. It is listed under
+[credentials and paths](#credentials-and-paths) above for that reason.
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `DA_JITTER` | `0.0` off; the installer writes `0.4` | Randomise each sleep by ±N, so the request pattern is not perfectly regular. Read by both `install_schedule.sh` and `da`. |
 
 ## Testing only
 

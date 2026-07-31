@@ -333,29 +333,46 @@ usage: da auth status [-h]
 
 Prints one line of JSON describing how much life the refresh-token chain
 has left, and encodes the same answer in its exit code. It is built for
-cron, launchd and monitoring wrappers: no network, no locks, one small
-object on stdout. Reach for it when you want a machine to
-notice the 90-day ceiling coming; reach for `da diagnose` when you want
-a person to read the whole health picture.
+cron, launchd and monitoring wrappers: one small object on stdout, no
+prose. Reach for it when you want a machine to notice the 90-day ceiling
+coming; reach for `da diagnose` when you want a person to read the whole
+health picture.
+
+It **does** talk to DeviantArt — see below. Poll it on a schedule, not in
+a tight loop.
 
 This command defines no flags of its own beyond `-h`, `--help`.
 
 ### Behaviour
 
 It reads `refresh_token_issued_at` from `state.json` and subtracts the
-elapsed time from 90 days (`REFRESH_TOKEN_TTL_DAYS`). Nothing else is
-consulted — not the config file, not the network, not DeviantArt. A
-green result therefore means "the chain has not aged out", not "the
-token works": for the second question use `da whoami` or `da diagnose`,
-both of which actually exercise the credentials.
+elapsed time from 90 days (`REFRESH_TOKEN_TTL_DAYS`) — and then it
+confirms the answer with DeviantArt, by resolving an access token and
+calling `/placebo`. So a green result means both "the chain has not aged
+out" *and* "DeviantArt still accepts it", which is the answer a
+monitoring wrapper actually wants; the alternative was reporting healthy
+for a grant that had been revoked server-side.
 
-The output object always has the same three keys:
+Two consequences worth planning around:
+
+- **It takes the token lock and can rotate your refresh token.** An
+  access token lives an hour and is refreshed 60 s early, so anything
+  polling on roughly an hourly cadence will refresh — and therefore
+  rotate — on almost every call. That is safe (rotation is serialised),
+  but it is not a read-only probe.
+- **It needs the network.** No connectivity is reported as
+  `unreachable`, distinct from `revoked`, so a dropped wifi link does not
+  send you to re-authenticate.
+
+The output object always carries these three keys, plus `error` on the
+two failure states:
 
 | Field | Type | Meaning |
 | --- | --- | --- |
-| `state` | string | `ok`, `warn`, `crit` or `unknown` |
-| `days_remaining` | float or null | Days left in the chain, rounded to one decimal; `null` when `state` is `unknown` |
+| `state` | string | `ok`, `warn`, `crit`, `unknown`, `revoked` or `unreachable` |
+| `days_remaining` | float or null | Days left in the chain, rounded to one decimal; `null` when `state` is `unknown`, `0.0` when `revoked` |
 | `issued_at_iso` | string or null | When the chain was issued, ISO 8601 in UTC; `null` when `state` is `unknown` |
+| `error` | string | Only on `revoked` / `unreachable`: what DeviantArt or the network said |
 
 The thresholds are `REFRESH_TOKEN_WARN_DAYS` (14) and
 `REFRESH_TOKEN_CRIT_DAYS` (3), and the comparisons are strict: more than
@@ -442,22 +459,19 @@ prints the first three lines, warns, and exits 0:
 [warn]  (re-run `da auth --scope "user browse"` to broaden)
 ```
 
-Two rough edges are worth knowing, because both look alarming and
-neither means your installation is broken. `da whoami` calls the API
-directly rather than through the retry-on-401 wrapper the sync commands
-use, so an access token that is locally fresh but has been revoked
-server-side produces an unhandled `urllib.error.HTTPError: HTTP Error
-401: Unauthorized` traceback and exit 1, not a tidy exit 2. Any non-403
-error from `/user/whoami` behaves the same way, as does a network
-failure while refreshing. If you see that traceback, run `da refresh` or
-`da auth`; the corresponding path in `da sync` recovers by itself.
+`da whoami` goes through `authed_http_json`, the same retry-on-401
+wrapper the sync commands use, so an access token that is locally fresh
+but has been revoked server-side is recovered automatically: the wrapper
+forces a refresh and retries once. You see the refresh happen, not an
+error. If the refresh itself fails — a dead refresh token, or no network
+— the command reports it in one line and exits 2.
 
 ### Exit codes
 
 0 when the token is valid, including the `browse`-only degraded case; 2
-when there is no refresh token or `/placebo` does not report success. An
-unhandled HTTP or network error exits 1 with a traceback, as described
-above.
+when there is no refresh token, when `/placebo` does not report success,
+or when an HTTP or network error prevents asking. Every failure path here
+ends in 2 — there is no case that exits 1.
 
 ## `da refresh`
 

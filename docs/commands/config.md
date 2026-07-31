@@ -25,11 +25,9 @@ first:
 
 1. **A command-line flag** on the command being run — `da sync feed
    --concurrency 8`, `da auth --redirect-uri ...`.
-2. **An environment variable.** Only four exist: `DA_CLIENT_ID`,
-   `DA_CLIENT_SECRET`, `DA_DESTINATION`, `DA_REDIRECT_URI`. No other key
-   can be set from the environment — in particular `DA_JITTER` is read
-   by `install_schedule.sh` when it writes the launchd job, never by
-   `da` itself. See
+2. **An environment variable.** Five exist: `DA_CLIENT_ID`,
+   `DA_CLIENT_SECRET`, `DA_DESTINATION`, `DA_REDIRECT_URI` and
+   `DA_JITTER`. No other config key can be set from the environment. See
    [environment variables](../reference/environment-variables.md).
 3. **The macOS Keychain**, for secrets only. The only secret is
    `client_secret`; it is stored under service `da-cli`, account
@@ -85,8 +83,9 @@ A `config.json` that is not valid JSON, or that parses to something
 other than an object (`[]`, `"x"`, `42`), produces a warning on stderr
 and is then ignored — `show` continues with an empty file and still
 prints the environment and Keychain values. A `config.json` that exists
-but cannot be read at all, for example mode `000`, is not handled: the
-`PermissionError` propagates and you get a traceback and exit 1.
+but cannot be read at all, for example mode `000`, raises
+`PermissionError`, which `main()` catches as an `OSError`: one line
+naming the path, and exit 2.
 
 `show` writes nothing and creates nothing, including the directories it
 prints.
@@ -219,14 +218,14 @@ Three things about `set` are worth knowing before you trust it:
   it; the sync and diagnose commands expand it when they use it. This is
   why `config show` prints `~/Pictures/DA` rather than an absolute path.
 
-Two failure modes are less friendly than they should be. If
-`config.json` contains unparsable JSON, `set` treats it as empty and
-overwrites the file with just the key you passed — everything else in it
-is lost. If it contains valid JSON that is not an object, `set` raises
-`TypeError: list indices must be integers or slices, not str` and exits
-1 with a traceback. In both cases the file is worth inspecting by hand
-before you write to it; `config show` will tell you which case you are
-in.
+One failure mode is less friendly than it should be. If `config.json`
+contains unparsable JSON, `set` treats it as empty and overwrites the
+file with just the key you passed — everything else in it is lost, with
+no warning. A file containing valid JSON that is *not* an object is
+handled better: `set` warns
+`expected a JSON object; replacing it` and continues, exit 0. Either way
+the file is worth inspecting by hand first; `config show` will tell you
+which case you are in.
 
 Finally, the value is a command-line argument. It appears in your shell
 history and, for the moment the process runs, in `ps`. For a secret you
@@ -266,10 +265,22 @@ $ da config set client_secret <your-client-secret>
 
 ### Exit codes
 
-0 on success. There is no 2: the ways `set` fails are unhandled
-exceptions, which exit 1 with a traceback — an unwritable config
-directory (`PermissionError`) and the non-object `config.json` case
-described above.
+0 on success, 2 on a rejected value. `set` validates the numeric keys
+before writing, so a bad value is caught rather than written and left to
+break the next sync:
+
+```console
+$ da config set jitter 40%
+[error] jitter must be a number — got '40%'
+$ echo $?
+2
+```
+
+`delay_api`, `delay_image` and `jitter` must parse as numbers;
+`concurrency` and `time_budget` must be whole numbers. Values are stored
+as given and coerced on read, so `3` and `3.0` both work. An unwritable
+config directory raises `PermissionError`, which `main()` catches as an
+`OSError` — also 2.
 
 ## config get
 
