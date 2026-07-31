@@ -1,0 +1,164 @@
+name: Release
+
+# ---------------------------------------------------------------------------
+# Tag-triggered release: build, verify, publish to PyPI, cut a GitHub Release.
+#
+# DO NOT RENAME THIS FILE. The workflow filename is part of the identity PyPI
+# checks when it validates the OIDC token. Renaming it silently breaks
+# publishing, and the resulting error does not point here.
+#
+# ONE-TIME SETUP, before the first tag (none of it lives in this repo):
+#
+#   1. PyPI -> your account sidebar -> Publishing -> add a *pending* publisher.
+#      It is under the account, not a project, because `da-cli` does not exist
+#      on PyPI yet; a pending publisher converts to a real one on first
+#      publish and does not reserve the name before then.
+#        owner: FZ2000   repo: da-cli   workflow: release.yml   environment: pypi
+#
+#   2. This repo -> Settings -> Environments -> new environment named `pypi`,
+#      with a deployment branch/tag rule allowing `v*` only.
+#
+#      Do NOT add required reviewers on a solo project: "prevent self-review"
+#      is off by default so you would merely approve your own deploy, and
+#      turning it on would deadlock you. The environment earns its place for a
+#      different reason — PyPI refuses an OIDC token minted outside the
+#      registered environment, so the constraint is enforced by a third party
+#      rather than by your own discipline.
+#
+#   3. Settings -> Tags -> protect `v*` so only you can create one.
+#
+# WHY OIDC AND NOT AN API TOKEN: a PyPI API token is valid indefinitely and
+# lives in your repo secrets. An OIDC token is minted per-run and expires in
+# 15 minutes, and there is nothing to leak in between.
+# ---------------------------------------------------------------------------
+
+on:
+  push:
+    tags: ["v*"]
+
+# Least privilege at the top. The publish job raises `id-token` for itself
+# only — GitHub's own docs discourage granting it workflow-wide.
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # This job needs no credentials; a checkout that leaves one behind
+          # is a needless one.
+          persist-credentials: false
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Tag must match dacli.__version__
+        # The version is `dynamic` from dacli.__version__, so nothing
+        # otherwise couples it to the tag. Without this check you can ship
+        # v0.5.0 containing a package that reports 0.4.0, and PyPI will
+        # cheerfully accept it.
+        run: |
+          v=$(python -c 'import dacli; print(dacli.__version__)')
+          if [ "v$v" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match dacli.__version__ ($v)"
+            exit 1
+          fi
+          echo "::notice::tag $GITHUB_REF_NAME matches dacli.__version__"
+
+      - name: Build sdist and wheel
+        run: |
+          python -m pip install --upgrade pip build
+          rm -rf build dist ./*.egg-info
+          python -m build
+
+      - name: The wheel must work without the source tree
+        # Every other job runs `da` out of the checkout, where `import dacli`
+        # resolves to the source and therefore always works. That masks
+        # packaging faults completely — a wheel missing a subpackage passes
+        # all of them.
+        run: |
+          python -m venv /tmp/relcheck
+          /tmp/relcheck/bin/pip install --quiet dist/*.whl
+          /tmp/relcheck/bin/da --version
+          /tmp/relcheck/bin/da --help > /dev/null
+          /tmp/relcheck/bin/python - <<'PY'
+          import pathlib, pkgutil, importlib, dacli
+          assert (pathlib.Path(dacli.__file__).parent / "py.typed").exists(), "py.typed missing from the wheel"
+          for m in pkgutil.walk_packages(dacli.__path__, "dacli."):
+              importlib.import_module(m.name)
+          print("wheel imports cleanly, py.typed present")
+          PY
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: pypi
+    permissions:
+      # Job-scoped, deliberately. This is the only job that mints an OIDC
+      # token, and it does nothing but download an artifact and upload it —
+      # keep it that way, so a compromised action elsewhere in CI has no path
+      # to a publishing credential.
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish
+        # No username, no password, no token. Attestations (PEP 740, backed by
+        # Sigstore) are on by default for Trusted Publishing, so there is
+        # nothing extra to configure and no second signing step to maintain.
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  github-release:
+    name: GitHub Release
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # to create the release
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v7
+        with:
+          name: dist
+          path: dist/
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # --verify-tag refuses to invent a tag that does not already exist.
+        # Notes come from CHANGELOG.md rather than --generate-notes: generated
+        # notes are a list of merged pull requests, and a hand-written
+        # changelog says more than a list of PR titles.
+        run: |
+          notes=$(python3 - <<'PY'
+          import pathlib, re, os
+          tag = os.environ["GITHUB_REF_NAME"].lstrip("v")
+          text = pathlib.Path("CHANGELOG.md").read_text()
+          # `\n## ` is exactly two hashes on purpose: `##+` also matches the
+          # `### Added` subsection directly below the heading, which collapses
+          # the captured body to nothing.
+          m = re.search(rf"^## \[?{re.escape(tag)}\]?[^\n]*\n(.*?)(?=\n## |\Z)", text, re.S | re.M)
+          print(m.group(1).strip() if m else f"See CHANGELOG.md for {tag}.")
+          PY
+          )
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --verify-tag \
+            --title "$GITHUB_REF_NAME" \
+            --notes "$notes"
