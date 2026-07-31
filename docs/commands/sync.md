@@ -387,7 +387,7 @@ for the stop reason rather than trusting the exit code.
 ## da sync watched
 
 ```text
-usage: da sync watched [-h] [--user USER] [--via-feed] [--feed-max FEED_MAX]
+usage: da sync watched [-h] [--user USER | --via-feed] [--feed-max FEED_MAX]
                        [--mature | --no-mature] [--time-budget SECONDS]
                        [--delay-api DELAY_API] [--delay-image DELAY_IMAGE]
                        [--full] [--jitter JITTER] [--concurrency CONCURRENCY]

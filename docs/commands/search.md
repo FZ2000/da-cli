@@ -389,7 +389,7 @@ $ da search tag-suggest zzz --json | head -12
 ## `da search user`
 
 ```text
-usage: da search user [-h] query [query ...]
+usage: da search user [-h] [--json] query [query ...]
 ```
 
 Resolves one or more usernames to DeviantArt user records. Use it to
@@ -429,7 +429,7 @@ da search user spyed devart
 ## `da daily`
 
 ```text
-usage: da daily [-h] [--mature] [date]
+usage: da daily [-h] [--mature] [--json] [date]
 ```
 
 Prints DeviantArt's Daily Deviation picks — the staff-selected
