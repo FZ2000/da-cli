@@ -12,7 +12,7 @@
 Sync your DeviantArt gallery to a local folder from the command line — a backup of the art you watch, kept current. **Zero runtime dependencies**: the whole tool is the Python 3.10+ standard library. A local SQLite index means a re-run costs one API call when nothing new was posted, and `launchd` (macOS) or a systemd timer (Linux) keeps it running unattended. Plus search and browse helpers.
 
 > **New to da-cli?** Follow the **[Setup Guide](docs/getting-started.md)** — it walks you through everything from install to first sync in about 10 minutes, with screenshots.
-> **Status: Beta (v0.3.x)** — core sync + search flow is stable. macOS Keychain integration is production-ready; Linux Secret Service support is planned. See [CHANGELOG.md](CHANGELOG.md) for details.
+> **Status: Beta** — the sync and search flows are stable and covered by 868 tests. macOS Keychain integration is production-ready; Linux Secret Service support is planned. See [CHANGELOG.md](CHANGELOG.md).
 
 ## Documentation
 

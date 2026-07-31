@@ -114,7 +114,7 @@ da sync watched --full        # paranoid full-walk of every watched artist
 ```
 
 **Auto-bootstrap:** if you already have content on disk but the index
-is empty (e.g. first run after upgrading from v0.2.x), the next sync
+is empty (e.g. the first run after a fresh install), the next sync
 imports everything from disk before running. One-time cost, ~10 sec
 per 10 k items.
 

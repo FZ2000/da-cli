@@ -25,7 +25,7 @@ body:
     attributes:
       label: da-cli version
       description: Output of `da --version`
-      placeholder: "0.3.0"
+      placeholder: "0.1.0"
     validations:
       required: true
   - type: input
