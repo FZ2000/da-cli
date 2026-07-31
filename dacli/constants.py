@@ -11,7 +11,7 @@ them as ``dacli.CONFIG_PATH`` at call time rather than importing the
 value, or the patch will not reach it.
 """
 
-__version__ = "0.3.0"
+__version__ = "0.1.0"
 
 import os
 import random

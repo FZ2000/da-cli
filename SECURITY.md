@@ -2,13 +2,19 @@
 
 ## Supported versions
 
-Security fixes are applied to the latest released version on the `main`
-branch only.
+Security fixes land on `main` and go out in the next release. There is no
+backport branch: this is a single-maintainer project, and promising
+backports it cannot deliver would be worse than saying so.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| latest main   | :white_check_mark: |
-| older tags    | :x:                |
+| Version | Supported |
+| --- | --- |
+| `main` | ✅ fixes land here first |
+| latest release | ✅ |
+| any earlier release | ❌ upgrade |
+
+Practically: if you are on the latest release or on `main`, report it and
+it will be fixed. If you are on an older one, the first step is to
+upgrade — the fix will not be backported.
 
 ## Reporting a vulnerability
 

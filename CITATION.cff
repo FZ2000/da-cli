@@ -11,11 +11,8 @@ authors:
     alias: FZ2000
 type: software
 license: MIT
-version: "0.3.0"
-# date-released is deliberately omitted: it is not a required CFF field
-# and no release has ever been tagged (`git tag` is empty), so a date
-# here would assert a release that does not exist. Add it with the
-# first real tag — see CONTRIBUTING.md#releases.
+version: "0.1.0"
+date-released: "2026-07-30"
 repository-code: "https://github.com/FZ2000/da-cli"
 url: "https://github.com/FZ2000/da-cli"
 keywords:

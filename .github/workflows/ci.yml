@@ -98,6 +98,13 @@ jobs:
         # dropped flag, or a moved file. Link checkers miss these because
         # they are not links.
         run: python3 tools/check_doc_references.py
+      - name: Version is consistent everywhere it appears
+        # dacli.__version__ is the source of truth; pyproject derives from it
+        # and the release workflow refuses a tag that disagrees. This asserts
+        # the hand-maintained links in between — CITATION.cff, the CHANGELOG
+        # section, the generated CLI reference, and any prose quoting a
+        # version in sample output.
+        run: python3 tools/check_version_sync.py
       - name: Generated docs are current
         # The CLI reference is generated from build_parser(). If someone
         # adds a flag without running `make docs`, this fails — which is

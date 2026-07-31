@@ -69,18 +69,12 @@ jobs:
           cache: pip
           cache-dependency-path: pyproject.toml
 
-      - name: Tag must match dacli.__version__
-        # The version is `dynamic` from dacli.__version__, so nothing
-        # otherwise couples it to the tag. Without this check you can ship
-        # v0.5.0 containing a package that reports 0.4.0, and PyPI will
-        # cheerfully accept it.
-        run: |
-          v=$(python -c 'import dacli; print(dacli.__version__)')
-          if [ "v$v" != "$GITHUB_REF_NAME" ]; then
-            echo "::error::tag $GITHUB_REF_NAME does not match dacli.__version__ ($v)"
-            exit 1
-          fi
-          echo "::notice::tag $GITHUB_REF_NAME matches dacli.__version__"
+      - name: Tag and package version must agree
+        # The same check CI runs on every push, plus the tag. Sharing it means
+        # one definition of "in sync" rather than two that can drift. Without
+        # it you can ship a tag whose wheel reports a different version — and
+        # PyPI will not let you re-upload a filename to correct it.
+        run: python3 tools/check_version_sync.py --tag "$GITHUB_REF_NAME"
 
       - name: Build sdist and wheel
         run: |

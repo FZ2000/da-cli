@@ -73,10 +73,10 @@ installed:
   ~/.local/share/da-cli/dacli/
   ~/.local/bin/da -> ~/.local/share/da-cli/da
 
-da-cli 0.3.0
+da-cli 0.1.0
 ```
 
-**If you see `da-cli 0.3.0`** — installation worked. Move to Step 3.
+**If you see a version number** — installation worked. Move to Step 3.
 
 **If you see "da: command not found"** — your system doesn't know
 where to find `da`. Fix it by adding the install directory to your
