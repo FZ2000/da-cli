@@ -27,6 +27,16 @@ name: Release
 #
 #   3. Settings -> Tags -> protect `v*` so only you can create one.
 #
+# WHY EVERY ACTION HERE IS SHA-PINNED: this is the only workflow that mints a
+# publishing credential, so a moved tag on a third-party action is a direct
+# path to a compromised release. Each pin carries a `# vX.Y.Z` comment because
+# Renovate disables updates for a bare SHA it cannot attribute to a version —
+# the comment is what keeps a pin maintained rather than merely frozen.
+#
+# This locks the OUTER reference only. A composite action that internally uses
+# a mutable tag is still reachable, which is why the publish job does nothing
+# but download an artifact and upload it.
+#
 # WHY OIDC AND NOT AN API TOKEN: a PyPI API token is valid indefinitely and
 # lives in your repo secrets. An OIDC token is minted per-run and expires in
 # 15 minutes, and there is nothing to leak in between.
@@ -47,13 +57,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           # This job needs no credentials; a checkout that leaves one behind
           # is a needless one.
           persist-credentials: false
 
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: "3.13"
           cache: pip
@@ -96,7 +106,7 @@ jobs:
           print("wheel imports cleanly, py.typed present")
           PY
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
           name: dist
           path: dist/
@@ -115,7 +125,7 @@ jobs:
       # to a publishing credential.
       id-token: write
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7.0.0
         with:
           name: dist
           path: dist/
@@ -124,7 +134,7 @@ jobs:
         # No username, no password, no token. Attestations (PEP 740, backed by
         # Sigstore) are on by default for Trusted Publishing, so there is
         # nothing extra to configure and no second signing step to maintain.
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33  # v1.14.2
 
   github-release:
     name: GitHub Release
@@ -134,8 +144,8 @@ jobs:
     permissions:
       contents: write # to create the release
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/download-artifact@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131  # v7.0.0
         with:
           name: dist
           path: dist/
