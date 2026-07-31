@@ -105,19 +105,23 @@ cd ~/Documents/da-cli
 ./install.sh                           # copies da + the dacli package to ~/.local/share/da-cli/ and symlinks ~/.local/bin/da → that copy
 ```
 
-**Option B — pip install.** Not published yet. Use Option A for now.
-
-When it is published the distribution will be named **`da-sync`**, not
-`da-cli`:
+**Option B — pip install.** The distribution is named **`da-sync`**; the
+command it installs is `da`.
 
 ```bash
-pipx install da-sync                   # the command is still `da`
+pipx install da-sync                   # isolated venv, recommended
+da --version
 ```
 
-Two names on PyPI are close to this project and are **not** it: `dacli`
-(an unrelated data-engineering tool) and `da-cli` (unregistered). Since
-this package installs a `da` command onto your `PATH` and handles
-DeviantArt OAuth tokens, check the name before installing anything.
+`pip install da-sync` works too, but `pipx` gives the tool its own
+environment, which is what you want for something that puts a command on
+your `PATH`.
+
+Two neighbouring PyPI names are **not** this project: `dacli` (an
+unrelated data-engineering tool) and `da-cli` (unregistered — PyPI
+rejects it as too similar to `dacli`, which is why this ships as
+`da-sync`). Since this package installs a `da` command and handles
+DeviantArt OAuth tokens, check the name.
 
 Python 3.10+ required (uses `argparse.BooleanOptionalAction` and `X | None` syntax). No third-party runtime dependencies.
 

@@ -11,6 +11,11 @@ that disagrees with it, and PyPI therefore always matches the tag.
 
 ## Unreleased
 
+### Changed
+
+- README documents the real `pipx install da-sync` path now that 0.1.0 is
+  published, replacing the placeholder that said it was unavailable.
+
 ## 0.1.0 — 2026-07-30
 
 First public release.
