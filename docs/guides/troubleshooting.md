@@ -38,8 +38,8 @@ Failures print what went wrong and exit `2`:
 
 ```console
 $ da whoami
-[error] HTTP 503 from https://www.deviantart.com/api/v1/oauth2/user/whoami: Service Unavailable
-[error] re-run with -v for the full traceback
+[error] DeviantArt is having trouble (HTTP 503 Service Unavailable).
+This is usually temporary and on their end. The next run resumes where this one stopped; nothing has been lost.
 ```
 
 The short form keeps the common case readable and keeps the exit code

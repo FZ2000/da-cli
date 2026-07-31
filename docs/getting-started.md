@@ -308,7 +308,7 @@ Output looks like:
 [0s] feed offset=0
   + ArtistName/Sample Title            245 KB
   + AnotherArtist/Cool Art             1.2 MB
-feed sync stopped: complete; ok=2 dup=0 noimg=0 fail=0
+feed sync stopped: feed exhausted; ok=2 dup=0 noimg=0 fail=0
 ```
 
 Check what was downloaded:

@@ -8,7 +8,8 @@ Accepted (2026-07-28). Binding.
 
 da-cli spans several distinct concerns — paths, logging, config,
 secrets, a SQLite index, an HTTP client, OAuth 2.1, a concurrent sync
-engine, thirteen command handlers, and the argument parser. Held in one
+engine, twenty-nine command handlers across thirteen top-level
+subcommands, and the argument parser. Held in one
 namespace they were mutually reachable, so nothing recorded which parts
 were meant to depend on which, and any documentation of the internal
 structure had to be maintained by hand against line numbers.
@@ -70,7 +71,9 @@ touches it, so it stays a plain module global.
 
 ### Positive
 
-- Each concern is readable on its own; the largest module is 848 lines.
+- Each concern is readable on its own. The largest is `sync.py` at ~1,200
+  lines, which is the walk plus its checkpointing and is not usefully
+  divisible; the rest sit well under that.
 - Dependencies between concerns are explicit imports rather than
   shared-namespace assumptions.
 - `ARCHITECTURE.md` describes modules, so it cannot drift the way a

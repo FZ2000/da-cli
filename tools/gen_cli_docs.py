@@ -106,8 +106,8 @@ def _subparsers(parser: argparse.ArgumentParser) -> dict[str, argparse.ArgumentP
     since Python 3.2 and the generator is dev-only — a break shows up
     as a failed `make docs`, never as a runtime error for a user.
     """
-    for action in parser._actions:  # noqa: SLF001
-        if isinstance(action, argparse._SubParsersAction):  # noqa: SLF001
+    for action in parser._actions:
+        if isinstance(action, argparse._SubParsersAction):
             return dict(action.choices)
     return {}
 

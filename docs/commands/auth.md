@@ -512,7 +512,7 @@ DeviantArt's own error body, truncated:
 ```console
 $ da refresh
 [warn]  refreshing access token via refresh_token
-[error] refresh failed: HTTP 401 {"error":"invalid_client","error_description":"Client authentication failed.","status":"error"}
+[error] DeviantArt rejected the refresh token (HTTP 401): {"error":"invalid_client","error_description":"Client authentication failed.","status":"error"}. Run `da auth` to sign in again.
 ```
 
 `invalid_client` there means the `client_id` or `client_secret` is wrong;

@@ -189,6 +189,10 @@ ignore = [
 # `X as X` alias — the form ruff recognises as a re-export. A blanket
 # suppression hid 28 imports that had stopped being anything at all.
 "dacli/__init__.py" = ["SLF001"]
+# argparse exposes no public accessor for its subparser tree, so both
+# doc tools walk `_actions` / `_SubParsersAction` to reach it.
+"tools/check_doc_flags.py" = ["SLF001"]
+"tools/gen_cli_docs.py" = ["SLF001"]
 "tests/**" = [
     "D",         # docstrings optional in tests
     "ANN",       # annotations optional in tests
