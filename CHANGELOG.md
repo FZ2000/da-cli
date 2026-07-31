@@ -15,6 +15,23 @@ that disagrees with it, and PyPI therefore always matches the tag.
 
 - README documents the real `pipx install da-sync` path now that 0.1.0 is
   published, replacing the placeholder that said it was unavailable.
+- The getting-started guide now offers the PyPI install as well. It had
+  only ever documented `git clone` + `./install.sh`, so the tutorial a new
+  user is pointed at was the one place that never mentioned the published
+  package.
+- `install_schedule.sh` ships in the repository but not in the wheel, so
+  the scheduling guide and the tutorial's scheduling step now say where to
+  get it rather than assuming a checkout. Its "not found on PATH" error
+  names both install paths instead of only `./install.sh`.
+
+### Fixed
+
+- The getting-started transcript of `./install.sh` omitted the
+  `(N modules)` suffix the script actually prints. `check_doc_references`
+  now asserts any documented module count against `dacli/`, so the number
+  cannot drift again — `docs/commands/` examples are executed by
+  `tests/test_docs_examples.py`, but `getting-started.md` is not, which is
+  how this survived.
 
 ## 0.1.0 — 2026-07-30
 

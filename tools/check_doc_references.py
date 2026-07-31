@@ -118,11 +118,38 @@ def _source_text() -> str:
     return "\n".join(parts)
 
 
+def _check_module_count(problems: list[tuple[str, str, int, str]]) -> int:
+    """`install.sh` prints a live module count; the docs quote a number.
+
+    A quoted count is a claim about the package, and it went stale the
+    moment it was written: the getting-started transcript omitted the
+    `(N modules)` suffix entirely while `install.sh` had been printing it
+    for some time. Nothing noticed, because prose is not executed.
+    """
+    real = sum(1 for _ in (REPO / "dacli").rglob("*.py"))
+    found = 0
+    for doc in sorted(REPO.rglob("*.md")):
+        rel = str(doc.relative_to(REPO))
+        if any(x in rel for x in SKIP_DIRS):
+            continue
+        for lineno, line in enumerate(doc.read_text().splitlines(), 1):
+            m = re.search(r"\((\d+) modules\)", line)
+            if not m:
+                continue
+            found += 1
+            if int(m.group(1)) != real:
+                problems.append(
+                    ("module count is stale", rel, lineno, f"says {m.group(1)}, dacli/ has {real}")
+                )
+    return found
+
+
 def main() -> int:
     paths, by_name = _repo_files()
     commands, flags = _cli_surface()
     source = _source_text()
     problems: list[tuple[str, str, int, str]] = []
+    module_counts = _check_module_count(problems)
 
     checked = 0
     for doc in sorted(REPO.rglob("*.md")):
@@ -199,7 +226,10 @@ def main() -> int:
     # `checked`, not a fresh rglob: the summary must describe the files this
     # run actually looked at, or a skipped tree inflates the number and the
     # message quietly overstates the coverage.
-    print(f"all code references in {checked} markdown files resolve")
+    print(
+        f"all code references in {checked} markdown files resolve "
+        f"({module_counts} module-count claim(s) match dacli/)"
+    )
     return 0
 
 
