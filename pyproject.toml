@@ -248,6 +248,15 @@ warn_unreachable = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 disallow_untyped_decorators = true
+# All five verified to pass with zero findings before being enabled, so they
+# cost nothing today and stop a regression tomorrow. They are the strict flags
+# that do not require annotating every local — the ones this codebase already
+# satisfies without knowing it.
+check_untyped_defs = true       # type-check bodies of unannotated functions
+no_implicit_optional = true     # `def f(x: int = None)` is an error, not Optional
+strict_equality = true          # `x == y` where the types cannot overlap
+disallow_untyped_calls = true   # calling an unannotated function from a typed one
+disallow_incomplete_defs = true # a signature annotated only in part
 disallow_untyped_defs = true
 no_implicit_reexport = true
 # Relax the rules that produce noise from JSON-shaped values

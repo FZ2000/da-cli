@@ -68,11 +68,17 @@ concurrency:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
+          # Caches the pip download/wheel cache keyed on pyproject.toml. The
+          # runtime has zero dependencies, but the dev extra pulls ruff, mypy,
+          # pytest and their graph, and 19 jobs were each fetching it fresh.
+          cache: pip
+          cache-dependency-path: pyproject.toml
       - name: Install dev deps
         run: |
           python -m pip install --upgrade pip
@@ -113,11 +119,14 @@ jobs:
         # registered with that label.
         python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
       - name: Install dev deps
         run: |
           python -m pip install --upgrade pip
@@ -150,11 +159,17 @@ jobs:
 
   integration:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
+          # Caches the pip download/wheel cache keyed on pyproject.toml. The
+          # runtime has zero dependencies, but the dev extra pulls ruff, mypy,
+          # pytest and their graph, and 19 jobs were each fetching it fresh.
+          cache: pip
+          cache-dependency-path: pyproject.toml
       - name: Install dev deps
         run: |
           python -m pip install --upgrade pip
@@ -172,11 +187,17 @@ jobs:
 
   smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
+          # Caches the pip download/wheel cache keyed on pyproject.toml. The
+          # runtime has zero dependencies, but the dev extra pulls ruff, mypy,
+          # pytest and their graph, and 19 jobs were each fetching it fresh.
+          cache: pip
+          cache-dependency-path: pyproject.toml
       - name: Run `da --version` (stdlib-only — no deps needed)
         run: python3 da --version
       - name: Run `da --help`
@@ -243,12 +264,18 @@ jobs:
     # installer that flattens one, passes all of them. This job runs only
     # what a user would actually receive.
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: test
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
+          # Caches the pip download/wheel cache keyed on pyproject.toml. The
+          # runtime has zero dependencies, but the dev extra pulls ruff, mypy,
+          # pytest and their graph, and 19 jobs were each fetching it fresh.
+          cache: pip
+          cache-dependency-path: pyproject.toml
 
       - name: Build wheel + sdist
         run: |
@@ -336,6 +363,7 @@ jobs:
   # ---------------------------------------------------------------------------
   secret-scan:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
         with:
@@ -368,6 +396,7 @@ jobs:
     # approach as the gitleaks job above). --fail → exit 183 on any
     # reportable finding, which gates CI.
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
         with:
@@ -384,6 +413,7 @@ jobs:
 
   codespell:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
       - name: Install codespell
@@ -411,12 +441,18 @@ jobs:
     # deps). da-cli itself has 0 runtime deps, so this is purely about
     # the dev environment.
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
+          # Caches the pip download/wheel cache keyed on pyproject.toml. The
+          # runtime has zero dependencies, but the dev extra pulls ruff, mypy,
+          # pytest and their graph, and 19 jobs were each fetching it fresh.
+          cache: pip
+          cache-dependency-path: pyproject.toml
       - name: Install dev deps
         run: |
           python -m pip install --upgrade pip
@@ -436,6 +472,7 @@ jobs:
     # advisory and the corpus had drifted to 56 violations. Run it here
     # so "configured" and "enforced" mean the same thing.
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
       - name: markdownlint
@@ -449,6 +486,7 @@ jobs:
     # deterministic, no network, gates every push/PR. External URLs are
     # covered by link-check-external below.
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
       - name: Install lychee
@@ -468,6 +506,7 @@ jobs:
     # unrelated PRs. Exclusions and accepted status codes live in
     # lychee.toml.
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v7
@@ -487,11 +526,17 @@ jobs:
     # so unlike the live jobs below it can gate every push, and it is
     # what actually catches a DA response-shape change.
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
+          # Caches the pip download/wheel cache keyed on pyproject.toml. The
+          # runtime has zero dependencies, but the dev extra pulls ruff, mypy,
+          # pytest and their graph, and 19 jobs were each fetching it fresh.
+          cache: pip
+          cache-dependency-path: pyproject.toml
       - name: Install dev + integration deps
         run: |
           python -m pip install --upgrade pip
@@ -531,12 +576,18 @@ jobs:
       github.event_name != 'pull_request' ||
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: test  # don't bother if unit tests are broken
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
+          # Caches the pip download/wheel cache keyed on pyproject.toml. The
+          # runtime has zero dependencies, but the dev extra pulls ruff, mypy,
+          # pytest and their graph, and 19 jobs were each fetching it fresh.
+          cache: pip
+          cache-dependency-path: pyproject.toml
       - name: Install dev + integration deps
         run: |
           python -m pip install --upgrade pip
@@ -571,6 +622,11 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
+          # Caches the pip download/wheel cache keyed on pyproject.toml. The
+          # runtime has zero dependencies, but the dev extra pulls ruff, mypy,
+          # pytest and their graph, and 19 jobs were each fetching it fresh.
+          cache: pip
+          cache-dependency-path: pyproject.toml
       - name: Discoverability and metadata checks
         run: python3 tools/check_discoverability.py
 
