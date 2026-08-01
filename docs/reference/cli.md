@@ -3,7 +3,7 @@
 
 # Command reference
 
-Every `da` command and flag, generated from `build_parser()` in the `dacli` package (version 0.1.0).
+Every `da` command and flag, generated from `build_parser()` in the `dacli` package (version 0.1.1).
 
 For settings that live in a config file rather than on the command line, see [configuration](configuration.md). For what each exit code means, see [exit codes](exit-codes.md).
 

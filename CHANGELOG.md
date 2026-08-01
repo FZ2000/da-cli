@@ -9,7 +9,15 @@ The version in `dacli/constants.py` is the single source of truth:
 `pyproject.toml` reads it dynamically, the release workflow refuses a tag
 that disagrees with it, and PyPI therefore always matches the tag.
 
-## Unreleased
+## 0.1.1 — 2026-08-01
+
+Documentation only; no code changes.
+
+The 0.1.0 project page on PyPI carried the pre-launch README, which told
+visitors "**Option B — pip install.** Not published yet. Use Option A for
+now." — on the page of the published package. A project description is
+frozen into the uploaded artifact and PyPI has no way to edit it, so
+correcting it requires a release. That is what this one is for.
 
 ### Changed
 
