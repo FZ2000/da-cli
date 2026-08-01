@@ -1,15 +1,19 @@
 # da-cli
 
+[![PyPI](https://img.shields.io/pypi/v/da-sync.svg)](https://pypi.org/project/da-sync/)
 [![CI](https://github.com/FZ2000/da-cli/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/FZ2000/da-cli/actions/workflows/ci.yml)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Python versions](https://img.shields.io/pypi/pyversions/da-sync.svg)](https://pypi.org/project/da-sync/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-261230.svg)](https://docs.astral.sh/ruff/)
 [![Type checked: mypy](https://img.shields.io/badge/types-mypy-blue.svg)](https://mypy-lang.org/)
 [![Coverage: 92%+](https://img.shields.io/badge/coverage-92%25%2B-brightgreen.svg)](CONTRIBUTING.md#tests)
-[![Status: Beta](https://img.shields.io/badge/status-beta-orange.svg)](https://github.com/FZ2000/da-cli/releases)
 [![Dependencies: 0 runtime](https://img.shields.io/badge/runtime%20deps-0-success.svg)](pyproject.toml)
 
 Sync your DeviantArt gallery to a local folder from the command line — a backup of the art you watch, kept current. **Zero runtime dependencies**: the whole tool is the Python 3.10+ standard library. A local SQLite index means a re-run costs one API call when nothing new was posted, and `launchd` (macOS) or a systemd timer (Linux) keeps it running unattended. Plus search and browse helpers.
+
+```bash
+pipx install da-sync     # the distribution is `da-sync`; the command is `da`
+```
 
 > **New to da-cli?** Follow the **[Setup Guide](docs/getting-started.md)** — it walks you through everything from install to first sync in about 10 minutes, with screenshots.
 > **Status: Beta** — the sync and search flows are stable and covered by 868 tests. macOS Keychain integration is production-ready; Linux Secret Service support is planned. See [CHANGELOG.md](CHANGELOG.md).
