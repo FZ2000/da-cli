@@ -73,7 +73,7 @@ da --version
 ```
 
 ```text
-da-cli 0.1.0
+da-cli 0.1.1
 ```
 
 ### Option B — clone the repository
@@ -105,7 +105,7 @@ installed:
   ~/.local/share/da-cli/dacli/  (17 modules)
   ~/.local/bin/da -> ~/.local/share/da-cli/da
 
-da-cli 0.1.0
+da-cli 0.1.1
 ```
 
 The module count reflects however many files the package currently has,
