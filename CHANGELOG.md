@@ -9,6 +9,23 @@ The version in `dacli/constants.py` is the single source of truth:
 `pyproject.toml` reads it dynamically, the release workflow refuses a tag
 that disagrees with it, and PyPI therefore always matches the tag.
 
+## Unreleased
+
+### Changed
+
+- The README now shows that the project is on PyPI: a version badge as the
+  first badge, and `pipx install da-sync` directly under the opening
+  paragraph. The install instructions were already correct, but nothing
+  above the fold said the package was installable, and the badge row —
+  eight badges covering CI, linting and coverage — never mentioned it.
+- The static `Python 3.10+` badge is now `pypi/pyversions`, which reads the
+  classifiers rather than restating them, so it cannot drift from
+  `requires-python`.
+- Dropped the `Status: Beta` badge. The blockquote two lines below says the
+  same thing with more detail, and the badge row has a budget: the
+  discoverability check requires "deviantart" within the first twelve
+  lines, and a ninth badge pushed the opening paragraph past it.
+
 ## 0.1.1 — 2026-08-01
 
 Documentation only; no code changes.
