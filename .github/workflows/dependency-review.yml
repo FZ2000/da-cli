@@ -40,7 +40,7 @@ jobs:
       # burying the result in the job log.
       pull-requests: write
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - # @v5, not @v4: this action publishes no `v4` floating major tag,
         # only v4.x.y specifics and v5.0.0, so `@v4` fails to resolve.
         uses: actions/dependency-review-action@v5
